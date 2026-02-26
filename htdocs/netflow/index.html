@@ -5,9 +5,9 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Netflow by Ealison</title>
 <style>
-:root{--bg:#060a14;--panel:rgba(8,14,28,0.95);--card:rgba(14,22,42,0.7);--card-hover:rgba(18,28,52,0.85);--border:rgba(255,255,255,0.06);--accent1:#00e676;--accent1-dim:rgba(0,230,118,0.10);--accent2:#448aff;--accent2-dim:rgba(68,138,255,0.10);--accent3:#ff9100;--accent3-dim:rgba(255,145,0,0.10);--red:#ff5252;--red-dim:rgba(255,82,82,0.10);--purple:#b388ff;--cyan:#18ffff;--text:#b0bec5;--text-bright:#e0e6ed;--muted:#546e7a}
+:root{--bg:#060a14;--panel:rgba(8,14,28,0.95);--card:rgba(14,22,42,0.7);--card-hover:rgba(18,28,52,0.85);--border:rgba(255,255,255,0.06);--accent1:#00e676;--accent1-dim:rgba(0,230,118,0.10);--accent2:#448aff;--accent2-dim:rgba(68,138,255,0.10);--accent3:#ff9100;--accent3-dim:rgba(255,145,0,0.10);--red:#ff5252;--red-dim:rgba(255,82,82,0.10);--yellow:#ffd600;--yellow-dim:rgba(255,214,0,0.10);--purple:#b388ff;--cyan:#18ffff;--text:#b0bec5;--text-bright:#e0e6ed;--muted:#546e7a}
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-apple-system,sans-serif;font-size:13px;overflow-x:hidden}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;font-size:13px;overflow-x:hidden}
 ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--muted);border-radius:3px}
 #login-overlay{position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;align-items:center;justify-content:center}
 #login-overlay.hidden{display:none}
@@ -16,8 +16,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
 .login-box .subtitle{color:var(--muted);margin-bottom:20px;font-size:12px}
 .login-box input{width:100%;padding:11px 14px;background:var(--card);border:1px solid var(--border);border-radius:7px;color:var(--text-bright);font-size:13px;margin-bottom:14px;outline:none}
 .login-box input:focus{border-color:var(--accent2)}
-.login-box button{width:100%;padding:11px;background:linear-gradient(135deg,var(--accent2),var(--purple));border:none;border-radius:7px;color:#fff;font-size:14px;font-weight:600;cursor:pointer;transition:.3s}
-.login-box button:hover{transform:translateY(-1px)}
+.login-box button{width:100%;padding:11px;background:linear-gradient(135deg,var(--accent2),var(--purple));border:none;border-radius:7px;color:#fff;font-size:14px;font-weight:600;cursor:pointer}
 .login-box .error{color:var(--red);font-size:12px;margin-top:6px;display:none}
 #app{display:none;flex-direction:column;height:100vh}#app.active{display:flex}
 .header{display:flex;align-items:center;justify-content:space-between;padding:8px 18px;background:var(--panel);border-bottom:1px solid var(--border);flex-shrink:0}
@@ -27,21 +26,47 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
 .header-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .stat-pill{display:flex;align-items:center;gap:4px;padding:4px 10px;background:var(--card);border:1px solid var(--border);border-radius:14px;font-size:11px}
 .stat-pill .dot{width:6px;height:6px;border-radius:50%}
-.stat-pill .dot.green{background:var(--accent1)}.stat-pill .dot.blue{background:var(--accent2)}.stat-pill .dot.orange{background:var(--accent3)}
+.stat-pill .dot.green{background:var(--accent1)}.stat-pill .dot.blue{background:var(--accent2)}.stat-pill .dot.orange{background:var(--accent3)}.stat-pill .dot.red{background:var(--red)}
 .stat-pill .val{color:var(--text-bright);font-weight:600}
-.btn-theme{padding:4px 8px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:12px;cursor:pointer}
-.btn-theme:hover{color:var(--text-bright);border-color:var(--text)}
-.topology-area{flex:1;position:relative;overflow:hidden;min-height:200px}
+.btn-h{padding:4px 8px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:12px;cursor:pointer;position:relative}
+.btn-h:hover{color:var(--text-bright);border-color:var(--text)}
+.btn-h .badge{position:absolute;top:-4px;right:-4px;width:14px;height:14px;border-radius:50%;background:var(--red);color:#fff;font-size:8px;display:flex;align-items:center;justify-content:center;font-weight:700}
+.topology-area{flex:1;position:relative;overflow:hidden;min-height:180px}
 #topoCanvas{width:100%;height:100%;display:block}
-.bottom-panel{background:var(--panel);border-top:1px solid var(--border);max-height:42vh;overflow-y:auto;flex-shrink:0}
-.panel-header{display:flex;align-items:center;justify-content:space-between;padding:8px 18px;border-bottom:1px solid var(--border);cursor:pointer;user-select:none}
+/* Alert toast */
+.alert-toast{position:fixed;top:55px;right:15px;z-index:800;display:flex;flex-direction:column;gap:6px;max-height:40vh;overflow-y:auto;pointer-events:none}
+.alert-item{background:var(--panel);border:1px solid var(--red);border-radius:8px;padding:8px 12px;display:flex;align-items:center;gap:8px;font-size:11px;pointer-events:auto;animation:slideIn .3s ease;max-width:350px}
+.alert-item.warn{border-color:var(--yellow)}
+.alert-item.info{border-color:var(--accent2)}
+.alert-item .a-icon{font-size:14px;flex-shrink:0}
+.alert-item .a-text{flex:1;color:var(--text-bright);line-height:1.3}
+.alert-item .a-text small{display:block;color:var(--muted);font-size:9px}
+.alert-item .a-close{color:var(--muted);cursor:pointer;font-size:14px;padding:2px}
+@keyframes slideIn{from{opacity:0;transform:translateX(30px)}to{opacity:1;transform:none}}
+/* Alert panel */
+.alert-panel{position:fixed;top:50px;right:10px;background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:12px;z-index:600;display:none;width:360px;max-height:60vh;overflow-y:auto}
+.alert-panel.active{display:block}
+.alert-panel h4{color:var(--text-bright);font-size:12px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
+.alert-panel h4 button{background:none;border:none;color:var(--muted);font-size:10px;cursor:pointer}
+.alert-log{display:flex;flex-direction:column;gap:4px}
+.alert-log-item{display:flex;gap:6px;padding:6px 8px;background:var(--card);border-radius:5px;font-size:10px;align-items:flex-start}
+.alert-log-item .al-icon{font-size:12px}
+.alert-log-item .al-text{flex:1;color:var(--text);line-height:1.3}
+.alert-log-item .al-time{color:var(--muted);font-size:9px;white-space:nowrap}
+/* Bottom panel - FIXED */
+.bottom-panel{background:var(--panel);border-top:1px solid var(--border);height:42vh;display:flex;flex-direction:column;flex-shrink:0}
+.panel-header{display:flex;align-items:center;justify-content:space-between;padding:6px 18px;border-bottom:1px solid var(--border);flex-shrink:0}
 .panel-header h2{font-size:13px;color:var(--text-bright);font-weight:600}
-.panel-header .toggle-icon{color:var(--muted);transition:transform .3s;font-size:14px}
-.panel-header .toggle-icon.collapsed{transform:rotate(180deg)}
-.device-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:8px;padding:10px 18px}
-.dev-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:5px;transition:all .2s}
+.sort-bar{display:flex;gap:4px;align-items:center}
+.sort-btn{padding:3px 8px;border-radius:4px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:10px;cursor:pointer;transition:.2s}
+.sort-btn:hover,.sort-btn.active{border-color:var(--accent2);color:var(--accent2);background:var(--accent2-dim)}
+.panel-header .toggle-icon{color:var(--muted);cursor:pointer;font-size:14px;margin-left:8px}
+.device-scroll{flex:1;overflow-y:auto;padding:8px 18px}
+.device-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:8px}
+.dev-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:4px;transition:all .2s}
 .dev-card:hover{background:var(--card-hover);border-color:rgba(255,255,255,0.1)}
 .dev-card.blocked-card{border-color:var(--red);opacity:0.5}
+.dev-card.alert-card{border-color:var(--yellow);box-shadow:0 0 6px rgba(255,214,0,0.1)}
 .dev-card-top{display:flex;align-items:center;gap:8px}
 .dev-icon{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
 .dev-info{flex:1;min-width:0}
@@ -49,115 +74,82 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
 .dev-info .name:hover{text-decoration:underline}
 .dev-info .ip{color:var(--muted);font-size:10px}
 .dev-iface{padding:2px 6px;border-radius:8px;font-size:9px;font-weight:700;text-transform:uppercase}
-.iface-wifi24{background:var(--accent1-dim);color:var(--accent1)}
-.iface-wifi5{background:var(--accent2-dim);color:var(--accent2)}
-.iface-eth{background:var(--accent3-dim);color:var(--accent3)}
+.iface-wifi24{background:var(--accent1-dim);color:var(--accent1)}.iface-wifi5{background:var(--accent2-dim);color:var(--accent2)}.iface-eth{background:var(--accent3-dim);color:var(--accent3)}
 .dev-card-stats{display:flex;gap:10px;font-size:10px}
 .dev-card-stats .up{color:var(--accent1)}.dev-card-stats .down{color:var(--accent2)}.dev-card-stats .total{color:var(--muted)}
 .traffic-types{display:flex;flex-wrap:wrap;gap:2px}
 .tt-badge{padding:1px 5px;border-radius:3px;font-size:9px;font-weight:600}
-.tt-https{background:var(--accent1-dim);color:var(--accent1)}.tt-dns{background:var(--accent2-dim);color:var(--accent2)}
-.tt-stream{background:rgba(179,136,255,0.10);color:var(--purple)}.tt-iot{background:var(--accent3-dim);color:var(--accent3)}
-.tt-vpn{background:rgba(24,255,255,0.10);color:var(--cyan)}.tt-other{background:rgba(84,110,122,0.15);color:var(--muted)}
+.tt-https{background:var(--accent1-dim);color:var(--accent1)}.tt-dns{background:var(--accent2-dim);color:var(--accent2)}.tt-stream{background:rgba(179,136,255,0.10);color:var(--purple)}.tt-iot{background:var(--accent3-dim);color:var(--accent3)}.tt-vpn{background:rgba(24,255,255,0.10);color:var(--cyan)}.tt-other{background:rgba(84,110,122,0.15);color:var(--muted)}
+.tt-alert{background:var(--red-dim);color:var(--red)}.tt-warn{background:var(--yellow-dim);color:var(--yellow)}
 .dev-card-actions{display:flex;gap:4px;margin-top:2px}
 .btn-sm{padding:3px 8px;border-radius:5px;border:1px solid var(--border);background:transparent;color:var(--text);font-size:10px;cursor:pointer;transition:.2s}
 .btn-sm:hover{border-color:var(--text-bright);color:var(--text-bright)}
 .btn-sm.btn-block:hover,.btn-sm.btn-block.active{border-color:var(--red);color:var(--red);background:var(--red-dim)}
 .btn-sm.btn-edit:hover{border-color:var(--accent2);color:var(--accent2)}
+/* Group separator */
+.group-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;padding:6px 0 2px;border-bottom:1px solid var(--border);margin-bottom:4px;grid-column:1/-1}
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:1000;display:none;align-items:center;justify-content:center}
 .modal-overlay.active{display:flex}
 .modal{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:20px;width:380px;max-width:90vw}
 .modal h3{color:var(--text-bright);margin-bottom:12px;font-size:14px}
 .modal label{display:block;color:var(--muted);font-size:10px;margin-bottom:3px;margin-top:10px;text-transform:uppercase}
 .modal input,.modal select{width:100%;padding:8px 10px;background:var(--card);border:1px solid var(--border);border-radius:5px;color:var(--text-bright);font-size:12px;outline:none}
-.modal input:focus,.modal select:focus{border-color:var(--accent2)}
 .modal-actions{display:flex;gap:8px;margin-top:16px;justify-content:flex-end}
-.modal-actions button{padding:6px 16px;border-radius:5px;border:none;cursor:pointer;font-size:12px;font-weight:500}
-.modal-actions .btn-save{background:var(--accent2);color:#fff}
-.modal-actions .btn-cancel{background:var(--card);color:var(--text);border:1px solid var(--border)}
+.modal-actions button{padding:6px 16px;border-radius:5px;border:none;cursor:pointer;font-size:12px}
+.modal-actions .btn-save{background:var(--accent2);color:#fff}.modal-actions .btn-cancel{background:var(--card);color:var(--text);border:1px solid var(--border)}
 .theme-panel{position:fixed;top:50px;right:10px;background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:14px;z-index:500;display:none;width:220px}
 .theme-panel.active{display:block}
 .theme-panel h4{color:var(--text-bright);font-size:12px;margin-bottom:10px}
 .theme-row{display:flex;align-items:center;justify-content:space-between;padding:5px 0}
-.theme-row label{font-size:11px;color:var(--text)}
-.theme-row input[type=color]{width:28px;height:20px;border:none;background:none;cursor:pointer;padding:0}
+.theme-row label{font-size:11px;color:var(--text)}.theme-row input[type=color]{width:28px;height:20px;border:none;background:none;cursor:pointer;padding:0}
 .theme-presets{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap}
 .theme-presets button{padding:3px 8px;border-radius:4px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:10px;cursor:pointer}
 .theme-presets button:hover,.theme-presets button.active{border-color:var(--accent2);color:var(--accent2)}
-@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-.fade-in{animation:fadeIn .3s ease-out}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}.fade-in{animation:fadeIn .3s ease-out}
 </style>
 </head>
 <body>
-<div id="login-overlay">
-  <div class="login-box fade-in">
-    <h1>Netflow by Ealison</h1>
-    <p class="subtitle">OpenWrt Network Monitor</p>
-    <input type="password" id="login-pass" placeholder="Mot de passe root" autofocus>
-    <button onclick="doLogin()">Connexion</button>
-    <div class="error" id="login-error">Mot de passe incorrect</div>
-  </div>
-</div>
+<div id="login-overlay"><div class="login-box fade-in"><h1>Netflow by Ealison</h1><p class="subtitle">OpenWrt Network Monitor</p><input type="password" id="login-pass" placeholder="Mot de passe root" autofocus><button onclick="doLogin()">Connexion</button><div class="error" id="login-error">Mot de passe incorrect</div></div></div>
 <div id="app">
   <div class="header">
     <div class="header-left"><h1>Netflow <span class="brand">by Ealison</span></h1></div>
     <div class="header-right">
       <div id="header-stats" style="display:flex;gap:8px;flex-wrap:wrap"></div>
-      <button class="btn-theme" onclick="toggleThemePanel()" title="Couleurs">🎨</button>
+      <button class="btn-h" onclick="toggleAlertPanel()" title="Alertes" id="alert-btn">🔔</button>
+      <button class="btn-h" onclick="toggleThemePanel()" title="Couleurs">🎨</button>
     </div>
   </div>
   <div class="topology-area"><canvas id="topoCanvas"></canvas></div>
+  <div class="alert-toast" id="alert-toast"></div>
   <div class="bottom-panel" id="bottom-panel">
-    <div class="panel-header" onclick="togglePanel()">
-      <h2>Appareils connectés (<span id="dev-count">0</span>)</h2>
-      <span class="toggle-icon" id="panel-toggle">▲</span>
+    <div class="panel-header">
+      <h2>Appareils (<span id="dev-count">0</span>)</h2>
+      <div class="sort-bar">
+        <button class="sort-btn active" onclick="setSort('interface')">Interface</button>
+        <button class="sort-btn" onclick="setSort('type')">Type</button>
+        <button class="sort-btn" onclick="setSort('traffic')">Trafic</button>
+        <button class="sort-btn" onclick="setSort('name')">Nom</button>
+        <button class="sort-btn" onclick="setSort('alerts')">Alertes</button>
+      </div>
     </div>
-    <div id="device-list" class="device-grid"></div>
+    <div class="device-scroll"><div id="device-list" class="device-grid"></div></div>
   </div>
 </div>
-<div class="modal-overlay" id="edit-modal">
-  <div class="modal fade-in">
-    <h3>Modifier l'appareil</h3>
-    <input type="hidden" id="edit-mac">
-    <label>Nom</label><input type="text" id="edit-name" placeholder="Mon appareil">
-    <label>Type</label>
-    <select id="edit-type">
-      <option value="auto">Auto</option><option value="pc">PC</option><option value="laptop">Laptop</option>
-      <option value="phone">Téléphone</option><option value="tablet">Tablette</option>
-      <option value="camera">Caméra</option><option value="iot">IoT</option><option value="tv">TV</option>
-      <option value="printer">Imprimante</option><option value="server">Serveur</option>
-      <option value="switch">Switch/Plug</option><option value="other">Autre</option>
-    </select>
-    <div class="modal-actions">
-      <button class="btn-cancel" onclick="closeModal()">Annuler</button>
-      <button class="btn-save" onclick="saveDevice()">OK</button>
-    </div>
-  </div>
-</div>
-<div class="theme-panel" id="theme-panel">
-  <h4>Thème</h4>
-  <div class="theme-presets">
-    <button onclick="applyPreset('default')" class="active">Défaut</button>
-    <button onclick="applyPreset('ocean')">Océan</button>
-    <button onclick="applyPreset('fire')">Feu</button>
-    <button onclick="applyPreset('matrix')">Matrix</button>
-    <button onclick="applyPreset('purple')">Violet</button>
-  </div>
-  <div class="theme-row"><label>Accent 1</label><input type="color" id="tc1" value="#00e676" onchange="applyCC()"></div>
-  <div class="theme-row"><label>Accent 2</label><input type="color" id="tc2" value="#448aff" onchange="applyCC()"></div>
-  <div class="theme-row"><label>Accent 3</label><input type="color" id="tc3" value="#ff9100" onchange="applyCC()"></div>
-  <div class="theme-row"><label>Fond</label><input type="color" id="tcbg" value="#060a14" onchange="applyCC()"></div>
-</div>
+<div class="modal-overlay" id="edit-modal"><div class="modal fade-in"><h3>Modifier l'appareil</h3><input type="hidden" id="edit-mac"><label>Nom</label><input type="text" id="edit-name" placeholder="Mon appareil"><label>Type</label><select id="edit-type"><option value="auto">Auto</option><option value="pc">PC</option><option value="laptop">Laptop</option><option value="phone">Téléphone</option><option value="tablet">Tablette</option><option value="camera">Caméra</option><option value="iot">IoT</option><option value="tv">TV</option><option value="printer">Imprimante</option><option value="server">Serveur</option><option value="switch">Switch/Plug</option><option value="other">Autre</option></select><div class="modal-actions"><button class="btn-cancel" onclick="closeModal()">Annuler</button><button class="btn-save" onclick="saveDevice()">OK</button></div></div></div>
+<div class="alert-panel" id="alert-panel"><h4>Alertes sécurité <button onclick="clearAlerts()">Tout effacer</button></h4><div class="alert-log" id="alert-log"></div></div>
+<div class="theme-panel" id="theme-panel"><h4>Thème</h4><div class="theme-presets"><button onclick="applyPreset('default')" class="active">Défaut</button><button onclick="applyPreset('ocean')">Océan</button><button onclick="applyPreset('fire')">Feu</button><button onclick="applyPreset('matrix')">Matrix</button><button onclick="applyPreset('purple')">Violet</button></div><div class="theme-row"><label>Accent 1</label><input type="color" id="tc1" value="#00e676" onchange="applyCC()"></div><div class="theme-row"><label>Accent 2</label><input type="color" id="tc2" value="#448aff" onchange="applyCC()"></div><div class="theme-row"><label>Accent 3</label><input type="color" id="tc3" value="#ff9100" onchange="applyCC()"></div><div class="theme-row"><label>Fond</label><input type="color" id="tcbg" value="#060a14" onchange="applyCC()"></div></div>
 <script>
-let SID='',DATA={},PB={},DM={},TH={};let canvas,ctx,W,H,animId,parts=[];
+let SID='',DATA={},PB={},DM={},TH={},ALERTS=[],SORT='interface',canvas,ctx,W,H,animId,parts=[];
 const API='/cgi-bin/luci/admin/ubus';
 try{DM=JSON.parse(localStorage.getItem('nf_devices')||'{}');}catch(e){}
 try{TH=JSON.parse(localStorage.getItem('nf_theme')||'{}');}catch(e){}
+try{ALERTS=JSON.parse(localStorage.getItem('nf_alerts')||'[]');}catch(e){}
 const PRESETS={default:{a1:'#00e676',a2:'#448aff',a3:'#ff9100',bg:'#060a14'},ocean:{a1:'#00bcd4',a2:'#0288d1',a3:'#26c6da',bg:'#051520'},fire:{a1:'#ff6d00',a2:'#ff1744',a3:'#ffab00',bg:'#140a05'},matrix:{a1:'#00ff41',a2:'#00e676',a3:'#76ff03',bg:'#050a05'},purple:{a1:'#e040fb',a2:'#7c4dff',a3:'#ea80fc',bg:'#0a0514'}};
 function setTC(t){const r=document.documentElement.style;r.setProperty('--accent1',t.a1||'#00e676');r.setProperty('--accent2',t.a2||'#448aff');r.setProperty('--accent3',t.a3||'#ff9100');r.setProperty('--bg',t.bg||'#060a14');r.setProperty('--accent1-dim',(t.a1||'#00e676')+'1a');r.setProperty('--accent2-dim',(t.a2||'#448aff')+'1a');r.setProperty('--accent3-dim',(t.a3||'#ff9100')+'1a');document.body.style.background=t.bg||'#060a14';document.getElementById('tc1').value=t.a1||'#00e676';document.getElementById('tc2').value=t.a2||'#448aff';document.getElementById('tc3').value=t.a3||'#ff9100';document.getElementById('tcbg').value=t.bg||'#060a14';}
-function applyPreset(n){TH=Object.assign({},PRESETS[n]||PRESETS.default);setTC(TH);localStorage.setItem('nf_theme',JSON.stringify(TH));document.querySelectorAll('.theme-presets button').forEach(b=>b.classList.remove('active'));event?.target?.classList?.add('active');}
+function applyPreset(n){TH=Object.assign({},PRESETS[n]||PRESETS.default);setTC(TH);localStorage.setItem('nf_theme',JSON.stringify(TH));}
 function applyCC(){TH={a1:document.getElementById('tc1').value,a2:document.getElementById('tc2').value,a3:document.getElementById('tc3').value,bg:document.getElementById('tcbg').value};setTC(TH);localStorage.setItem('nf_theme',JSON.stringify(TH));}
-function toggleThemePanel(){document.getElementById('theme-panel').classList.toggle('active');}
+function toggleThemePanel(){document.getElementById('theme-panel').classList.toggle('active');document.getElementById('alert-panel').classList.remove('active');}
+function toggleAlertPanel(){document.getElementById('alert-panel').classList.toggle('active');document.getElementById('theme-panel').classList.remove('active');renderAlertLog();}
 if(TH.a1)setTC(TH);
 async function doLogin(){const pw=document.getElementById('login-pass').value;try{const r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({jsonrpc:'2.0',id:1,method:'call',params:['00000000000000000000000000000000','session','login',{username:'root',password:pw}]})});const d=await r.json();if(d.result?.[0]===0&&d.result?.[1]?.ubus_rpc_session){SID=d.result[1].ubus_rpc_session;document.getElementById('login-overlay').classList.add('hidden');document.getElementById('app').classList.add('active');initDash();}else{showErr();}}catch(e){showErr();}}
 function showErr(){const el=document.getElementById('login-error');el.style.display='block';setTimeout(()=>el.style.display='none',3000);}
@@ -171,10 +163,78 @@ const IC={pc:'💻',laptop:'💻',phone:'📱',tablet:'📱',camera:'📷',switc
 function tCol(t){return{pc:'#448aff',laptop:'#448aff',phone:'#00e676',tablet:'#00e676',camera:'#ff9100',switch:'#ff9100',tv:'#b388ff',printer:'#546e7a',server:'#18ffff',iot:'#ff9100',other:'#546e7a'}[t]||'#546e7a';}
 function clsTraf(es){const t=new Set();for(const e of es){const d=e.dport,s=e.sport;if(d===443||s===443)t.add('HTTPS');else if(d===80||s===80)t.add('HTTP');else if(d===53||s===53)t.add('DNS');else if(d===9993||s===9993)t.add('ZT');else if(d===1883||d===8883)t.add('MQTT');else if(d===5353)t.add('mDNS');else if([554,8554,8080,8443,34567].includes(d))t.add('Stream');else if([51820,1194].includes(d))t.add('VPN');else t.add('Other');}return[...t].slice(0,4);}
 const TTC={HTTPS:'tt-https',HTTP:'tt-https',DNS:'tt-dns',Stream:'tt-stream',MQTT:'tt-iot',mDNS:'tt-dns',ZT:'tt-vpn',VPN:'tt-vpn',Other:'tt-other'};
+
+/* ===== ALERT SYSTEM ===== */
+const SENSITIVE_PORTS=[21,22,23,25,135,139,445,3306,3389,5900,6379,8080,8888,9200,27017];
+const PORT_NAMES={21:'FTP',22:'SSH',23:'Telnet',25:'SMTP',135:'RPC',139:'NetBIOS',445:'SMB',3306:'MySQL',3389:'RDP',5900:'VNC',6379:'Redis',8080:'HTTP-Alt',8888:'HTTP-Alt',9200:'Elastic',27017:'MongoDB'};
+function analyzeDevice(dev,ct){
+  const alerts=[];
+  /* High connection count */
+  if(dev.conn>50)alerts.push({level:'warn',msg:dev.hostname+': '+dev.conn+' connexions actives',detail:'Nombre inhabituellement élevé'});
+  /* High bandwidth */
+  if(dev.ts+dev.rs>5000000)alerts.push({level:'warn',msg:dev.hostname+': débit élevé ('+fmtS(dev.ts+dev.rs)+')',detail:'Trafic important détecté'});
+  /* High data volume */
+  if(dev.tx+dev.rx>100000000)alerts.push({level:'info',msg:dev.hostname+': '+fmtB(dev.tx+dev.rx)+' échangés',detail:'Volume de données important'});
+  /* Sensitive ports */
+  const devCt=ct.filter(e=>e.src===dev.ip||e.dst===dev.ip);
+  const sensitivePorts=new Set();
+  devCt.forEach(e=>{
+    if(SENSITIVE_PORTS.includes(e.dport))sensitivePorts.add(e.dport);
+    if(SENSITIVE_PORTS.includes(e.sport))sensitivePorts.add(e.sport);
+  });
+  if(sensitivePorts.size>0){
+    const pNames=[...sensitivePorts].map(p=>PORT_NAMES[p]||p).join(', ');
+    alerts.push({level:'alert',msg:dev.hostname+': ports sensibles ('+pNames+')',detail:'Ports: '+[...sensitivePorts].join(', ')});
+  }
+  /* Many different destinations */
+  const dstIPs=new Set(devCt.filter(e=>e.src===dev.ip).map(e=>e.dst));
+  if(dstIPs.size>30)alerts.push({level:'warn',msg:dev.hostname+': '+dstIPs.size+' destinations différentes',detail:'Possible scan ou comportement anormal'});
+  /* Outbound without expected (IoT devices sending too much) */
+  if(['camera','iot','switch'].includes(dev.type)&&dstIPs.size>10)alerts.push({level:'warn',msg:dev.hostname+' ('+dev.type+'): '+dstIPs.size+' destinations',detail:'IoT avec trop de connexions sortantes'});
+  return alerts;
+}
+function addAlert(alert){
+  const key=alert.msg;
+  if(ALERTS.find(a=>a.msg===key&&Date.now()-a.ts<300000))return;
+  const item={...alert,ts:Date.now(),id:Math.random().toString(36).substr(2,6)};
+  ALERTS.unshift(item);
+  if(ALERTS.length>100)ALERTS.length=100;
+  localStorage.setItem('nf_alerts',JSON.stringify(ALERTS));
+  showToast(item);
+  updateAlertBadge();
+}
+function showToast(item){
+  const c=document.getElementById('alert-toast');
+  const cls=item.level==='alert'?'':'warn';
+  const icon=item.level==='alert'?'🚨':item.level==='warn'?'⚠️':'ℹ️';
+  const el=document.createElement('div');
+  el.className='alert-item '+cls;
+  el.innerHTML='<span class="a-icon">'+icon+'</span><div class="a-text">'+item.msg+'<small>'+item.detail+'</small></div><span class="a-close" onclick="this.parentElement.remove()">✕</span>';
+  c.appendChild(el);
+  setTimeout(()=>el.remove(),8000);
+}
+function updateAlertBadge(){
+  const recent=ALERTS.filter(a=>Date.now()-a.ts<600000).length;
+  const btn=document.getElementById('alert-btn');
+  const existing=btn.querySelector('.badge');
+  if(existing)existing.remove();
+  if(recent>0){const b=document.createElement('span');b.className='badge';b.textContent=recent;btn.appendChild(b);}
+}
+function renderAlertLog(){
+  const c=document.getElementById('alert-log');
+  if(!ALERTS.length){c.innerHTML='<div style="color:var(--muted);font-size:11px;padding:10px">Aucune alerte</div>';return;}
+  c.innerHTML=ALERTS.slice(0,50).map(a=>{
+    const icon=a.level==='alert'?'🚨':a.level==='warn'?'⚠️':'ℹ️';
+    const ago=Math.floor((Date.now()-a.ts)/60000);
+    const timeStr=ago<1?'maintenant':ago+'min';
+    return '<div class="alert-log-item"><span class="al-icon">'+icon+'</span><div class="al-text">'+a.msg+'</div><span class="al-time">'+timeStr+'</span></div>';
+  }).join('');
+}
+function clearAlerts(){ALERTS=[];localStorage.setItem('nf_alerts','[]');renderAlertLog();updateAlertBadge();}
 async function fetchData(){
   const[si,ifd,dh,ctR,w24,w5,iw0]=await Promise.all([ubus('system','info'),ubus('network.interface','dump'),ubus('luci-rpc','getDHCPLeases'),ubus('luci','getConntrackList'),ubus('iwinfo','assoclist',{device:'phy0-ap0'}),ubus('iwinfo','assoclist',{device:'wlan1'}),ubus('iwinfo','info',{device:'phy0-ap0'})]);
-  const ct=ctR?(Array.isArray(ctR)?ctR:(ctR.result||[])):[];
-  const ls=dh?.dhcp_leases||[];const w24M=(w24?.results||[]).map(c=>c.mac?.toUpperCase());const w5M=(w5?.results||[]).map(c=>c.mac?.toUpperCase());
+  const ct=ctR?(Array.isArray(ctR)?ctR:(ctR.result||[])):[];const ls=dh?.dhcp_leases||[];
+  const w24M=(w24?.results||[]).map(c=>c.mac?.toUpperCase());const w5M=(w5?.results||[]).map(c=>c.mac?.toUpperCase());
   const wC={};(w24?.results||[]).forEach(c=>{wC[c.mac?.toUpperCase()]=c;});(w5?.results||[]).forEach(c=>{wC[c.mac?.toUpperCase()]=c;});
   const now=Date.now();
   const devs=ls.map(l=>{
@@ -186,43 +246,70 @@ async function fetchData(){
     const pk=mac+'t',pkr=mac+'r';let ts=0,rs=0;
     if(PB[pk]){const dt=(now-PB[pk].t)/1000;if(dt>0){ts=Math.max(0,(tx-PB[pk].v)/dt);rs=Math.max(0,(rx-PB[pkr].v)/dt);}}
     PB[pk]={v:tx,t:now};PB[pkr]={v:rx,t:now};
-    return{hostname:mt.name||l.hostname||mac,ip:l.ipaddr,mac,iface,type:dType(l.hostname,mac),conn:dCt.length,tx,rx,ts,rs,tt:clsTraf(dCt),sig:wC[mac]?.signal||null,blocked:mt.blocked||false};
+    const dev={hostname:mt.name||l.hostname||mac,ip:l.ipaddr,mac,iface,type:dType(l.hostname,mac),conn:dCt.length,tx,rx,ts,rs,tt:clsTraf(dCt),sig:wC[mac]?.signal||null,blocked:mt.blocked||false,alerts:[]};
+    dev.alerts=analyzeDevice(dev,ct);
+    dev.alerts.forEach(a=>addAlert(a));
+    return dev;
   });
-  devs.sort((a,b)=>(a.blocked?1:0)-(b.blocked?1:0)||((b.tx+b.rx)-(a.tx+a.rx)));
   DATA={sys:si,wan:ifd?.interface?.find(i=>i.interface==='wan'),devs,ct,ssid:iw0?.ssid||'WiFi',conns:ct.length,ts:now};
 }
 function updateHeader(){
   const d=DATA,up=d.sys?.uptime||0,cn=d.conns||0,dc=d.devs?.length||0;
   const wUp=d.wan?.up,wIP=d.wan?.['ipv4-address']?.[0]?.address||'--';
   const tT=d.devs?.reduce((s,v)=>s+v.ts,0)||0,tR=d.devs?.reduce((s,v)=>s+v.rs,0)||0;
+  const alertCount=d.devs?.reduce((s,v)=>s+v.alerts.length,0)||0;
   document.getElementById('header-stats').innerHTML=
     '<div class="stat-pill"><span class="dot '+(wUp?'green':'')+'"></span>WAN <span class="val">'+wIP+'</span></div>'+
     '<div class="stat-pill"><span class="dot green"></span>↑<span class="val">'+fmtS(tT)+'</span></div>'+
     '<div class="stat-pill"><span class="dot blue"></span>↓<span class="val">'+fmtS(tR)+'</span></div>'+
     '<div class="stat-pill"><span class="dot orange"></span><span class="val">'+cn+'</span> flux</div>'+
     '<div class="stat-pill"><span class="val">'+dc+'</span> appareils</div>'+
+    (alertCount>0?'<div class="stat-pill"><span class="dot red"></span><span class="val">'+alertCount+'</span> alertes</div>':'')+
     '<div class="stat-pill">Up <span class="val">'+fmtU(up)+'</span></div>';
+  updateAlertBadge();
+}
+/* ===== SORT ===== */
+function setSort(s){SORT=s;document.querySelectorAll('.sort-btn').forEach(b=>b.classList.remove('active'));event?.target?.classList?.add('active');updateDevs();}
+function sortDevs(devs){
+  const list=[...devs];
+  if(SORT==='interface')list.sort((a,b)=>{const o={wifi24:0,wifi5:1,eth:2};return(o[a.iface]||9)-(o[b.iface]||9)||(a.hostname.localeCompare(b.hostname));});
+  else if(SORT==='type')list.sort((a,b)=>a.type.localeCompare(b.type)||a.hostname.localeCompare(b.hostname));
+  else if(SORT==='traffic')list.sort((a,b)=>(b.tx+b.rx)-(a.tx+a.rx));
+  else if(SORT==='name')list.sort((a,b)=>a.hostname.localeCompare(b.hostname));
+  else if(SORT==='alerts')list.sort((a,b)=>b.alerts.length-a.alerts.length||(b.tx+b.rx)-(a.tx+a.rx));
+  return list;
+}
+function getGroupKey(dev){
+  if(SORT==='interface')return dev.iface==='wifi24'?'WiFi 2.4GHz':dev.iface==='wifi5'?'WiFi 5GHz':'Ethernet';
+  if(SORT==='type')return dev.type.toUpperCase();
+  return null;
 }
 function updateDevs(){
   const c=document.getElementById('device-list');document.getElementById('dev-count').textContent=DATA.devs?.length||0;
   if(!DATA.devs)return;
-  c.innerHTML=DATA.devs.map(d=>{
+  const sorted=sortDevs(DATA.devs);let html='',lastGroup='';
+  sorted.forEach(d=>{
+    const gk=getGroupKey(d);
+    if(gk&&gk!==lastGroup){html+='<div class="group-label">'+gk+'</div>';lastGroup=gk;}
     const ic=IC[d.type]||'?',co=tCol(d.type);
     const ifC=d.iface==='wifi24'?'iface-wifi24':d.iface==='wifi5'?'iface-wifi5':'iface-eth';
     const ifL=d.iface==='wifi24'?'WiFi 2.4G':d.iface==='wifi5'?'WiFi 5G':'Ethernet';
     const tt=d.tt.map(t=>'<span class="tt-badge '+(TTC[t]||'tt-other')+'">'+t+'</span>').join('');
     const sig=d.sig?' · '+d.sig+'dBm':'';
-    return '<div class="dev-card '+(d.blocked?'blocked-card':'')+'"><div class="dev-card-top">'+
+    const hasAlert=d.alerts.length>0;
+    const alertBadges=d.alerts.map(a=>'<span class="tt-badge '+(a.level==='alert'?'tt-alert':'tt-warn')+'">'+(a.level==='alert'?'🚨':'⚠️')+' '+a.detail.substring(0,20)+'</span>').join('');
+    html+='<div class="dev-card '+(d.blocked?'blocked-card':'')+(hasAlert?' alert-card':'')+'"><div class="dev-card-top">'+
       '<div class="dev-icon" style="background:'+co+'18;color:'+co+'">'+ic+'</div>'+
       '<div class="dev-info"><div class="name" onclick="openEdit(\''+d.mac+'\')">'+d.hostname+'</div>'+
       '<div class="ip">'+d.ip+' · '+d.mac.substring(0,8)+'...'+sig+'</div></div>'+
       '<span class="dev-iface '+ifC+'">'+ifL+'</span></div>'+
       '<div class="dev-card-stats"><span class="up">↑'+fmtS(d.ts)+'</span><span class="down">↓'+fmtS(d.rs)+'</span>'+
       '<span class="total">∑'+fmtB(d.tx+d.rx)+'</span><span class="total">·'+d.conn+'c</span></div>'+
-      '<div class="traffic-types">'+tt+'</div>'+
+      '<div class="traffic-types">'+tt+alertBadges+'</div>'+
       '<div class="dev-card-actions"><button class="btn-sm btn-edit" onclick="openEdit(\''+d.mac+'\')">Renommer</button>'+
       '<button class="btn-sm btn-block '+(d.blocked?'active':'')+'" onclick="toggleBlock(\''+d.mac+'\')">'+(d.blocked?'Débloquer':'Bloquer')+'</button></div></div>';
-  }).join('');
+  });
+  c.innerHTML=html;
       }
 function initCanvas(){canvas=document.getElementById('topoCanvas');ctx=canvas.getContext('2d');resizeCanvas();window.addEventListener('resize',resizeCanvas);}
 function resizeCanvas(){const a=canvas.parentElement,dpr=window.devicePixelRatio||1;canvas.width=a.clientWidth*dpr;canvas.height=a.clientHeight*dpr;canvas.style.width=a.clientWidth+'px';canvas.style.height=a.clientHeight+'px';ctx.setTransform(dpr,0,0,dpr,0,0);W=a.clientWidth;H=a.clientHeight;}
@@ -237,14 +324,12 @@ function getN(){
   ifs.forEach(f=>{const ifN=n['i_'+f.id];const dl=f.d;const mx=Math.max(1,Math.floor((H-16)/24));
     dl.forEach((d,i)=>{const col=Math.floor(i/mx),row=i%mx;const ic=Math.min(dl.length-col*mx,mx);
       const x=cD+col*105,yS=ifN.y-(ic-1)*12,y=yS+row*24;
-      const id='d_'+d.mac.replace(/:/g,'');n[id]={x,y,l:d.hostname.substring(0,11),s:'',c:f.c,r:9,dv:d};ad.push(id);});});
+      const id='d_'+d.mac.replace(/:/g,'');n[id]={x,y,l:d.hostname.substring(0,11),s:'',c:d.alerts?.length>0?'#ff5252':f.c,r:9,dv:d};ad.push(id);});});
   return{n,ifs,ad};
 }
 function drawN(nd){const{x,y,l,s,c,r}=nd;ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fillStyle=c+'15';ctx.fill();ctx.strokeStyle=c+'55';ctx.lineWidth=0.8;ctx.stroke();ctx.beginPath();ctx.arc(x,y,2.5,0,Math.PI*2);ctx.fillStyle=c;ctx.fill();ctx.font='bold '+(r>12?'9':'7')+'px sans-serif';ctx.fillStyle='#b0bec5';ctx.textAlign='center';ctx.fillText(l,x,y+r+8);if(s){ctx.font='7px sans-serif';ctx.fillStyle='#546e7a';ctx.fillText(s,x,y+r+16);}}
 function drawL(x1,y1,x2,y2,c,w){ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.strokeStyle=(c||'#fff')+'18';ctx.lineWidth=w||0.6;ctx.stroke();}
-class Pt{constructor(a,b,c,d,col,sp,sz){this.a=a;this.b=b;this.c=c;this.d=d;this.col=col;this.sp=sp||.008;this.sz=sz||1.5;this.t=Math.random();}
-  update(){this.t+=this.sp;if(this.t>=1)this.t=0;}
-  draw(x){const px=this.a+(this.c-this.a)*this.t,py=this.b+(this.d-this.b)*this.t;x.beginPath();x.arc(px,py,this.sz,0,Math.PI*2);x.fillStyle=this.col;x.fill();}}
+class Pt{constructor(a,b,c,d,col,sp,sz){this.a=a;this.b=b;this.c=c;this.d=d;this.col=col;this.sp=sp||.008;this.sz=sz||1.5;this.t=Math.random();}update(){this.t+=this.sp;if(this.t>=1)this.t=0;}draw(x){const px=this.a+(this.c-this.a)*this.t,py=this.b+(this.d-this.b)*this.t;x.beginPath();x.arc(px,py,this.sz,0,Math.PI*2);x.fillStyle=this.col;x.fill();}}
 function updParts(){const{n,ifs}=getN();const nd=[];
   const wT=DATA.devs?.reduce((s,d)=>s+d.ts+d.rs,0)||0;const wC=Math.max(1,Math.min(5,Math.floor(wT/50000)));
   for(let i=0;i<wC;i++){nd.push({a:n.wan.x,b:n.wan.y,c:n.rtr.x,d:n.rtr.y,col:'#ff9100',sp:.005+Math.random()*.007,sz:1.3+Math.random()});nd.push({a:n.rtr.x,b:n.rtr.y,c:n.wan.x,d:n.wan.y,col:'#448aff',sp:.005+Math.random()*.007,sz:1.3+Math.random()});}
@@ -254,20 +339,16 @@ function updParts(){const{n,ifs}=getN();const nd=[];
   while(parts.length<nd.length){const p=nd[parts.length%nd.length];parts.push(new Pt(p.a,p.b,p.c,p.d,p.col,p.sp,p.sz));}
   while(parts.length>nd.length+8)parts.pop();
   parts.forEach((p,i)=>{if(nd[i%nd.length]){const q=nd[i%nd.length];p.a=q.a;p.b=q.b;p.c=q.c;p.d=q.d;p.col=q.col;}});
-                   }
+}
 let lPU=0;
 function render(t){
-  ctx.clearRect(0,0,W,H);
-  ctx.strokeStyle='rgba(255,255,255,0.012)';ctx.lineWidth=0.5;
+  ctx.clearRect(0,0,W,H);ctx.strokeStyle='rgba(255,255,255,0.012)';ctx.lineWidth=0.5;
   for(let x=0;x<W;x+=50){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
   for(let y=0;y<H;y+=50){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
-  const{n,ifs,ad}=getN();
-  drawL(n.wan.x,n.wan.y,n.rtr.x,n.rtr.y,'#ff9100',1.2);
-  ifs.forEach(f=>{const ifN=n['i_'+f.id];if(!ifN)return;drawL(n.rtr.x,n.rtr.y,ifN.x,ifN.y,f.c,.8);f.d.forEach(dv=>{const did='d_'+dv.mac.replace(/:/g,''),dn=n[did];if(dn)drawL(ifN.x,ifN.y,dn.x,dn.y,f.c,.4);});});
-  if(t-lPU>2000){updParts();lPU=t;}
-  parts.forEach(p=>{p.update();p.draw(ctx);});
-  drawN(n.wan);drawN(n.rtr);
-  ifs.forEach(f=>{const ifN=n['i_'+f.id];if(ifN)drawN(ifN);});
+  const{n,ifs,ad}=getN();drawL(n.wan.x,n.wan.y,n.rtr.x,n.rtr.y,'#ff9100',1.2);
+  ifs.forEach(f=>{const ifN=n['i_'+f.id];if(!ifN)return;drawL(n.rtr.x,n.rtr.y,ifN.x,ifN.y,f.c,.8);f.d.forEach(dv=>{const did='d_'+dv.mac.replace(/:/g,''),dn=n[did];if(dn)drawL(ifN.x,ifN.y,dn.x,dn.y,dn.c,.4);});});
+  if(t-lPU>2000){updParts();lPU=t;}parts.forEach(p=>{p.update();p.draw(ctx);});
+  drawN(n.wan);drawN(n.rtr);ifs.forEach(f=>{const ifN=n['i_'+f.id];if(ifN)drawN(ifN);});
   ad.forEach(id=>{if(n[id])drawN(n[id]);});
   const ang=(t*.0008)%(Math.PI*2);ctx.save();ctx.globalAlpha=0.04;ctx.beginPath();ctx.moveTo(n.rtr.x,n.rtr.y);ctx.arc(n.rtr.x,n.rtr.y,40,ang,ang+.5);ctx.closePath();ctx.fillStyle='#448aff';ctx.fill();ctx.restore();
   animId=requestAnimationFrame(render);
@@ -279,10 +360,9 @@ async function toggleBlock(mac){const dv=DATA.devs?.find(d=>d.mac===mac);if(!dv)
   if(DM[mac].blocked){DM[mac].blocked=false;await ubus('uci','delete',{config:'firewall',type:'rule',match:{name:'nf_block_'+mac.replace(/:/g,'')}});await ubus('uci','commit',{config:'firewall'});await ubus('luci','setInitAction',{name:'firewall',action:'restart'});}
   else{DM[mac].blocked=true;await ubus('uci','add',{config:'firewall',type:'rule',name:'nf_block_'+mac.replace(/:/g,''),values:{name:'nf_block_'+mac.replace(/:/g,''),src:'lan',dest:'wan',src_ip:dv.ip,target:'DROP',enabled:'1'}});await ubus('uci','commit',{config:'firewall'});await ubus('luci','setInitAction',{name:'firewall',action:'restart'});}
   localStorage.setItem('nf_devices',JSON.stringify(DM));updateDevs();}
-function togglePanel(){const l=document.getElementById('device-list'),ic=document.getElementById('panel-toggle');if(l.style.display==='none'){l.style.display='grid';ic.classList.remove('collapsed');}else{l.style.display='none';ic.classList.add('collapsed');}}
 async function initDash(){initCanvas();await fetchData();updateHeader();updateDevs();requestAnimationFrame(render);setInterval(async()=>{await fetchData();updateHeader();updateDevs();},5000);}
 document.getElementById('edit-modal').addEventListener('click',function(e){if(e.target===this)closeModal();});
-document.addEventListener('click',function(e){const tp=document.getElementById('theme-panel');if(tp.classList.contains('active')&&!tp.contains(e.target)&&!e.target.classList.contains('btn-theme'))tp.classList.remove('active');});
+document.addEventListener('click',function(e){const tp=document.getElementById('theme-panel'),ap=document.getElementById('alert-panel');if(tp.classList.contains('active')&&!tp.contains(e.target)&&!e.target.classList.contains('btn-h'))tp.classList.remove('active');if(ap.classList.contains('active')&&!ap.contains(e.target)&&!e.target.classList.contains('btn-h'))ap.classList.remove('active');});
 </script>
 </body>
 </html>
