@@ -1,0 +1,13 @@
+#!/bin/sh
+# DNS Query Log CGI for Netflow by Ealison
+# Returns DNS query logs from dnsmasq in text/plain format
+# The JavaScript dashboard will parse the output client-side
+
+echo "Content-Type: text/plain"
+echo "Access-Control-Allow-Origin: *"
+echo "Cache-Control: no-cache"
+echo ""
+
+# Read syslog and filter DNS queries
+# Format: timestamp query[TYPE] DOMAIN from CLIENT_IP
+logread | grep 'query\[' | tail -500
