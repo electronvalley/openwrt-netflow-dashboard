@@ -11,7 +11,7 @@
   --panel: rgba(8,14,28,0.92);
   --card: rgba(14,22,42,0.7);
   --card-hover: rgba(18,28,52,0.85);
-  --border: rgba(255,255,255,0.04);
+  --border: rgba(255,255,255,0.04);h
   --green: #00e676;
   --green-dim: rgba(0,230,118,0.08);
   --blue: #448aff;
@@ -315,7 +315,7 @@ function fetchAllData() {
     if (si) DATA.sysinfo = si;
     if (dh) DATA.leases = dh.dhcp_leases || [];
     if (hh) DATA.hints = hh;
-    if (ct) DATA.conntrack = ct;
+    if (ct) DATA.conntrack = Array.isArray(ct) ? ct : (ct.result || []);
     if (wd) DATA.wireless = wd;
     var wr = DATA.rates['wan'];
     if (wr) {
