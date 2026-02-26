@@ -3,101 +3,96 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>OpenWrt NetFlow Dashboard</title>
+<title>Netflow by Ealison</title>
 <style>
-:root{--bg:#060a14;--panel:rgba(8,14,28,0.95);--card:rgba(14,22,42,0.7);--card-hover:rgba(18,28,52,0.85);--border:rgba(255,255,255,0.06);--green:#00e676;--green-dim:rgba(0,230,118,0.12);--blue:#448aff;--blue-dim:rgba(68,138,255,0.12);--orange:#ff9100;--orange-dim:rgba(255,145,0,0.12);--red:#ff5252;--red-dim:rgba(255,82,82,0.12);--purple:#b388ff;--cyan:#18ffff;--text:#c8d6e5;--text-bright:#e8f0fe;--muted:#5a6a7e;--glow-green:0 0 20px rgba(0,230,118,0.2);--glow-blue:0 0 20px rgba(68,138,255,0.2);--glow-red:0 0 20px rgba(255,82,82,0.2)}
+:root{--bg:#060a14;--panel:rgba(8,14,28,0.95);--card:rgba(14,22,42,0.7);--card-hover:rgba(18,28,52,0.85);--border:rgba(255,255,255,0.06);--accent1:#00e676;--accent1-dim:rgba(0,230,118,0.10);--accent2:#448aff;--accent2-dim:rgba(68,138,255,0.10);--accent3:#ff9100;--accent3-dim:rgba(255,145,0,0.10);--red:#ff5252;--red-dim:rgba(255,82,82,0.10);--purple:#b388ff;--cyan:#18ffff;--text:#b0bec5;--text-bright:#e0e6ed;--muted:#546e7a}
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-apple-system,sans-serif;font-size:15px;overflow-x:hidden}
-::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--muted);border-radius:3px}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-apple-system,sans-serif;font-size:13px;overflow-x:hidden}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--muted);border-radius:3px}
 #login-overlay{position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;align-items:center;justify-content:center}
 #login-overlay.hidden{display:none}
-.login-box{background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:40px;width:380px;text-align:center;box-shadow:var(--glow-blue)}
-.login-box h1{font-size:26px;color:var(--text-bright);margin-bottom:8px}
-.login-box p{color:var(--muted);margin-bottom:24px;font-size:14px}
-.login-box input{width:100%;padding:14px 16px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text-bright);font-size:15px;margin-bottom:16px;outline:none}
-.login-box input:focus{border-color:var(--blue);box-shadow:var(--glow-blue)}
-.login-box button{width:100%;padding:14px;background:linear-gradient(135deg,var(--blue),var(--purple));border:none;border-radius:8px;color:#fff;font-size:16px;font-weight:600;cursor:pointer;transition:.3s}
-.login-box button:hover{transform:translateY(-1px);box-shadow:var(--glow-blue)}
-.login-box .error{color:var(--red);font-size:13px;margin-top:8px;display:none}
-#app{display:none;flex-direction:column;height:100vh}
-#app.active{display:flex}
-.header{display:flex;align-items:center;justify-content:space-between;padding:12px 24px;background:var(--panel);border-bottom:1px solid var(--border);flex-shrink:0}
-.header-left{display:flex;align-items:center;gap:16px}
-.header-left h1{font-size:20px;color:var(--text-bright);font-weight:700;letter-spacing:-0.5px}
-.header-right{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
-.stat-pill{display:flex;align-items:center;gap:6px;padding:6px 14px;background:var(--card);border:1px solid var(--border);border-radius:20px;font-size:13px}
-.stat-pill .dot{width:8px;height:8px;border-radius:50%}
-.stat-pill .dot.green{background:var(--green);box-shadow:0 0 6px var(--green)}
-.stat-pill .dot.blue{background:var(--blue)}
-.stat-pill .dot.orange{background:var(--orange)}
+.login-box{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:36px;width:360px;text-align:center;box-shadow:0 0 8px rgba(68,138,255,0.12)}
+.login-box h1{font-size:22px;color:var(--text-bright);margin-bottom:4px}
+.login-box .subtitle{color:var(--muted);margin-bottom:20px;font-size:12px}
+.login-box input{width:100%;padding:11px 14px;background:var(--card);border:1px solid var(--border);border-radius:7px;color:var(--text-bright);font-size:13px;margin-bottom:14px;outline:none}
+.login-box input:focus{border-color:var(--accent2)}
+.login-box button{width:100%;padding:11px;background:linear-gradient(135deg,var(--accent2),var(--purple));border:none;border-radius:7px;color:#fff;font-size:14px;font-weight:600;cursor:pointer;transition:.3s}
+.login-box button:hover{transform:translateY(-1px)}
+.login-box .error{color:var(--red);font-size:12px;margin-top:6px;display:none}
+#app{display:none;flex-direction:column;height:100vh}#app.active{display:flex}
+.header{display:flex;align-items:center;justify-content:space-between;padding:8px 18px;background:var(--panel);border-bottom:1px solid var(--border);flex-shrink:0}
+.header-left{display:flex;align-items:center;gap:12px}
+.header-left h1{font-size:15px;color:var(--text-bright);font-weight:700}
+.header-left .brand{color:var(--accent2);font-weight:400;font-size:11px;margin-left:-8px}
+.header-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.stat-pill{display:flex;align-items:center;gap:4px;padding:4px 10px;background:var(--card);border:1px solid var(--border);border-radius:14px;font-size:11px}
+.stat-pill .dot{width:6px;height:6px;border-radius:50%}
+.stat-pill .dot.green{background:var(--accent1)}.stat-pill .dot.blue{background:var(--accent2)}.stat-pill .dot.orange{background:var(--accent3)}
 .stat-pill .val{color:var(--text-bright);font-weight:600}
-.topology-area{flex:1;position:relative;overflow:hidden;min-height:250px}
+.btn-theme{padding:4px 8px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:12px;cursor:pointer}
+.btn-theme:hover{color:var(--text-bright);border-color:var(--text)}
+.topology-area{flex:1;position:relative;overflow:hidden;min-height:200px}
 #topoCanvas{width:100%;height:100%;display:block}
 .bottom-panel{background:var(--panel);border-top:1px solid var(--border);max-height:42vh;overflow-y:auto;flex-shrink:0}
-.panel-header{display:flex;align-items:center;justify-content:space-between;padding:10px 24px;border-bottom:1px solid var(--border);cursor:pointer;user-select:none}
-.panel-header h2{font-size:15px;color:var(--text-bright);font-weight:600}
-.panel-header .toggle-icon{color:var(--muted);transition:transform .3s;font-size:18px}
+.panel-header{display:flex;align-items:center;justify-content:space-between;padding:8px 18px;border-bottom:1px solid var(--border);cursor:pointer;user-select:none}
+.panel-header h2{font-size:13px;color:var(--text-bright);font-weight:600}
+.panel-header .toggle-icon{color:var(--muted);transition:transform .3s;font-size:14px}
 .panel-header .toggle-icon.collapsed{transform:rotate(180deg)}
-.device-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:12px;padding:16px 24px}
-.dev-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:8px;transition:all .2s;position:relative}
+.device-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:8px;padding:10px 18px}
+.dev-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:5px;transition:all .2s}
 .dev-card:hover{background:var(--card-hover);border-color:rgba(255,255,255,0.1)}
-.dev-card.blocked-card{border-color:var(--red);opacity:0.6}
-.dev-card-top{display:flex;align-items:center;gap:10px}
-.dev-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.dev-card.blocked-card{border-color:var(--red);opacity:0.5}
+.dev-card-top{display:flex;align-items:center;gap:8px}
+.dev-icon{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
 .dev-info{flex:1;min-width:0}
-.dev-info .name{color:var(--text-bright);font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
+.dev-info .name{color:var(--text-bright);font-weight:600;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
 .dev-info .name:hover{text-decoration:underline}
-.dev-info .ip{color:var(--muted);font-size:12px}
-.dev-iface{padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.3px}
-.iface-wifi24{background:var(--green-dim);color:var(--green)}
-.iface-wifi5{background:var(--blue-dim);color:var(--blue)}
-.iface-eth{background:var(--orange-dim);color:var(--orange)}
-.dev-card-stats{display:flex;gap:12px;font-size:12px}
-.dev-card-stats .up{color:var(--green)}
-.dev-card-stats .down{color:var(--blue)}
-.dev-card-stats .total{color:var(--muted)}
-.traffic-types{display:flex;flex-wrap:wrap;gap:3px}
-.tt-badge{padding:1px 6px;border-radius:3px;font-size:10px;font-weight:600}
-.tt-https{background:var(--green-dim);color:var(--green)}
-.tt-dns{background:var(--blue-dim);color:var(--blue)}
-.tt-stream{background:rgba(179,136,255,0.12);color:var(--purple)}
-.tt-iot{background:var(--orange-dim);color:var(--orange)}
-.tt-vpn{background:rgba(24,255,255,0.12);color:var(--cyan)}
-.tt-other{background:var(--card);color:var(--muted)}
-.dev-card-actions{display:flex;gap:6px;margin-top:4px}
-.btn-sm{padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--text);font-size:11px;cursor:pointer;transition:.2s}
+.dev-info .ip{color:var(--muted);font-size:10px}
+.dev-iface{padding:2px 6px;border-radius:8px;font-size:9px;font-weight:700;text-transform:uppercase}
+.iface-wifi24{background:var(--accent1-dim);color:var(--accent1)}
+.iface-wifi5{background:var(--accent2-dim);color:var(--accent2)}
+.iface-eth{background:var(--accent3-dim);color:var(--accent3)}
+.dev-card-stats{display:flex;gap:10px;font-size:10px}
+.dev-card-stats .up{color:var(--accent1)}.dev-card-stats .down{color:var(--accent2)}.dev-card-stats .total{color:var(--muted)}
+.traffic-types{display:flex;flex-wrap:wrap;gap:2px}
+.tt-badge{padding:1px 5px;border-radius:3px;font-size:9px;font-weight:600}
+.tt-https{background:var(--accent1-dim);color:var(--accent1)}.tt-dns{background:var(--accent2-dim);color:var(--accent2)}
+.tt-stream{background:rgba(179,136,255,0.10);color:var(--purple)}.tt-iot{background:var(--accent3-dim);color:var(--accent3)}
+.tt-vpn{background:rgba(24,255,255,0.10);color:var(--cyan)}.tt-other{background:rgba(84,110,122,0.15);color:var(--muted)}
+.dev-card-actions{display:flex;gap:4px;margin-top:2px}
+.btn-sm{padding:3px 8px;border-radius:5px;border:1px solid var(--border);background:transparent;color:var(--text);font-size:10px;cursor:pointer;transition:.2s}
 .btn-sm:hover{border-color:var(--text-bright);color:var(--text-bright)}
 .btn-sm.btn-block:hover,.btn-sm.btn-block.active{border-color:var(--red);color:var(--red);background:var(--red-dim)}
-.btn-sm.btn-edit:hover{border-color:var(--blue);color:var(--blue)}
+.btn-sm.btn-edit:hover{border-color:var(--accent2);color:var(--accent2)}
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:1000;display:none;align-items:center;justify-content:center}
 .modal-overlay.active{display:flex}
-.modal{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:24px;width:400px;max-width:90vw}
-.modal h3{color:var(--text-bright);margin-bottom:16px;font-size:17px}
-.modal label{display:block;color:var(--muted);font-size:12px;margin-bottom:4px;margin-top:12px;text-transform:uppercase;letter-spacing:0.3px}
-.modal input,.modal select{width:100%;padding:10px 12px;background:var(--card);border:1px solid var(--border);border-radius:6px;color:var(--text-bright);font-size:14px;outline:none}
-.modal input:focus,.modal select:focus{border-color:var(--blue)}
-.modal-actions{display:flex;gap:10px;margin-top:20px;justify-content:flex-end}
-.modal-actions button{padding:8px 20px;border-radius:6px;border:none;cursor:pointer;font-size:14px;font-weight:500}
-.modal-actions .btn-save{background:var(--blue);color:#fff}
+.modal{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:20px;width:380px;max-width:90vw}
+.modal h3{color:var(--text-bright);margin-bottom:12px;font-size:14px}
+.modal label{display:block;color:var(--muted);font-size:10px;margin-bottom:3px;margin-top:10px;text-transform:uppercase}
+.modal input,.modal select{width:100%;padding:8px 10px;background:var(--card);border:1px solid var(--border);border-radius:5px;color:var(--text-bright);font-size:12px;outline:none}
+.modal input:focus,.modal select:focus{border-color:var(--accent2)}
+.modal-actions{display:flex;gap:8px;margin-top:16px;justify-content:flex-end}
+.modal-actions button{padding:6px 16px;border-radius:5px;border:none;cursor:pointer;font-size:12px;font-weight:500}
+.modal-actions .btn-save{background:var(--accent2);color:#fff}
 .modal-actions .btn-cancel{background:var(--card);color:var(--text);border:1px solid var(--border)}
-.settings-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)}
-.settings-row:last-child{border:none}
-.settings-row label{margin:0;font-size:13px;color:var(--text)}
-.toggle-sw{position:relative;width:40px;height:22px;cursor:pointer}
-.toggle-sw input{opacity:0;width:0;height:0}
-.toggle-sw .slider{position:absolute;inset:0;background:var(--card);border:1px solid var(--border);border-radius:11px;transition:.3s}
-.toggle-sw .slider:before{content:'';position:absolute;width:16px;height:16px;border-radius:50%;background:var(--muted);left:2px;top:2px;transition:.3s}
-.toggle-sw input:checked+.slider{background:var(--blue-dim);border-color:var(--blue)}
-.toggle-sw input:checked+.slider:before{background:var(--blue);transform:translateX(18px)}
-@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
-.fade-in{animation:fadeIn .4s ease-out}
+.theme-panel{position:fixed;top:50px;right:10px;background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:14px;z-index:500;display:none;width:220px}
+.theme-panel.active{display:block}
+.theme-panel h4{color:var(--text-bright);font-size:12px;margin-bottom:10px}
+.theme-row{display:flex;align-items:center;justify-content:space-between;padding:5px 0}
+.theme-row label{font-size:11px;color:var(--text)}
+.theme-row input[type=color]{width:28px;height:20px;border:none;background:none;cursor:pointer;padding:0}
+.theme-presets{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap}
+.theme-presets button{padding:3px 8px;border-radius:4px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:10px;cursor:pointer}
+.theme-presets button:hover,.theme-presets button.active{border-color:var(--accent2);color:var(--accent2)}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.fade-in{animation:fadeIn .3s ease-out}
 </style>
 </head>
 <body>
 <div id="login-overlay">
   <div class="login-box fade-in">
-    <h1>🌐 NetFlow</h1>
-    <p>OpenWrt Network Monitor</p>
+    <h1>Netflow by Ealison</h1>
+    <p class="subtitle">OpenWrt Network Monitor</p>
     <input type="password" id="login-pass" placeholder="Mot de passe root" autofocus>
     <button onclick="doLogin()">Connexion</button>
     <div class="error" id="login-error">Mot de passe incorrect</div>
@@ -105,17 +100,16 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
 </div>
 <div id="app">
   <div class="header">
-    <div class="header-left">
-      <h1>🌐 NetFlow Dashboard</h1>
+    <div class="header-left"><h1>Netflow <span class="brand">by Ealison</span></h1></div>
+    <div class="header-right">
+      <div id="header-stats" style="display:flex;gap:8px;flex-wrap:wrap"></div>
+      <button class="btn-theme" onclick="toggleThemePanel()" title="Couleurs">🎨</button>
     </div>
-    <div class="header-right" id="header-stats"></div>
   </div>
-  <div class="topology-area">
-    <canvas id="topoCanvas"></canvas>
-  </div>
+  <div class="topology-area"><canvas id="topoCanvas"></canvas></div>
   <div class="bottom-panel" id="bottom-panel">
     <div class="panel-header" onclick="togglePanel()">
-      <h2>📱 Appareils connectés (<span id="dev-count">0</span>)</h2>
+      <h2>Appareils connectés (<span id="dev-count">0</span>)</h2>
       <span class="toggle-icon" id="panel-toggle">▲</span>
     </div>
     <div id="device-list" class="device-grid"></div>
@@ -123,599 +117,172 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-ap
 </div>
 <div class="modal-overlay" id="edit-modal">
   <div class="modal fade-in">
-    <h3>✏️ Modifier l'appareil</h3>
+    <h3>Modifier l'appareil</h3>
     <input type="hidden" id="edit-mac">
-    <label>Nom personnalisé</label>
-    <input type="text" id="edit-name" placeholder="Mon appareil">
-    <label>Type d'appareil</label>
+    <label>Nom</label><input type="text" id="edit-name" placeholder="Mon appareil">
+    <label>Type</label>
     <select id="edit-type">
-      <option value="auto">Auto-détection</option>
-      <option value="pc">💻 PC / Desktop</option>
-      <option value="laptop">💻 Laptop</option>
-      <option value="phone">📱 Téléphone</option>
-      <option value="tablet">📱 Tablette</option>
-      <option value="camera">📷 Caméra</option>
-      <option value="iot">📡 IoT / Capteur</option>
-      <option value="tv">📺 TV / Media</option>
-      <option value="printer">🖨️ Imprimante</option>
-      <option value="server">🖥️ Serveur</option>
-      <option value="switch">🔌 Switch / Plug</option>
-      <option value="other">❓ Autre</option>
+      <option value="auto">Auto</option><option value="pc">PC</option><option value="laptop">Laptop</option>
+      <option value="phone">Téléphone</option><option value="tablet">Tablette</option>
+      <option value="camera">Caméra</option><option value="iot">IoT</option><option value="tv">TV</option>
+      <option value="printer">Imprimante</option><option value="server">Serveur</option>
+      <option value="switch">Switch/Plug</option><option value="other">Autre</option>
     </select>
     <div class="modal-actions">
       <button class="btn-cancel" onclick="closeModal()">Annuler</button>
-      <button class="btn-save" onclick="saveDevice()">Enregistrer</button>
+      <button class="btn-save" onclick="saveDevice()">OK</button>
     </div>
   </div>
 </div>
+<div class="theme-panel" id="theme-panel">
+  <h4>Thème</h4>
+  <div class="theme-presets">
+    <button onclick="applyPreset('default')" class="active">Défaut</button>
+    <button onclick="applyPreset('ocean')">Océan</button>
+    <button onclick="applyPreset('fire')">Feu</button>
+    <button onclick="applyPreset('matrix')">Matrix</button>
+    <button onclick="applyPreset('purple')">Violet</button>
+  </div>
+  <div class="theme-row"><label>Accent 1</label><input type="color" id="tc1" value="#00e676" onchange="applyCC()"></div>
+  <div class="theme-row"><label>Accent 2</label><input type="color" id="tc2" value="#448aff" onchange="applyCC()"></div>
+  <div class="theme-row"><label>Accent 3</label><input type="color" id="tc3" value="#ff9100" onchange="applyCC()"></div>
+  <div class="theme-row"><label>Fond</label><input type="color" id="tcbg" value="#060a14" onchange="applyCC()"></div>
+</div>
 <script>
-/* ===== GLOBAL STATE ===== */
-let SID = '', DATA = {}, PREV_BYTES = {}, DEVICES_META = {}, SETTINGS = {showPanel:true};
-let canvas, ctx, W, H, animId, particles = [];
-const API = '/cgi-bin/luci/admin/ubus';
-
-/* Load saved device metadata from localStorage */
-try { DEVICES_META = JSON.parse(localStorage.getItem('nf_devices') || '{}'); } catch(e){}
-try { SETTINGS = JSON.parse(localStorage.getItem('nf_settings') || '{}'); } catch(e){}
-
-/* ===== LOGIN ===== */
-async function doLogin() {
-  const pw = document.getElementById('login-pass').value;
-  try {
-    const r = await fetch(API, {method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({jsonrpc:'2.0',id:1,method:'call',params:['00000000000000000000000000000000','session','login',{username:'root',password:pw}]})});
-    const d = await r.json();
-    if (d.result?.[0] === 0 && d.result?.[1]?.ubus_rpc_session) {
-      SID = d.result[1].ubus_rpc_session;
-      document.getElementById('login-overlay').classList.add('hidden');
-      document.getElementById('app').classList.add('active');
-      initDashboard();
-    } else { showLoginError(); }
-  } catch(e) { showLoginError(); }
-}
-function showLoginError() {
-  const el = document.getElementById('login-error');
-  el.style.display = 'block';
-  setTimeout(() => el.style.display = 'none', 3000);
-}
-document.getElementById('login-pass').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
-
-/* ===== UBUS CALL ===== */
-async function ubus(obj, method, params={}) {
-  const r = await fetch(API, {method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({jsonrpc:'2.0',id:1,method:'call',params:[SID,obj,method,params]})});
-  const d = await r.json();
-  if (d.error?.code === -32002) { location.reload(); return null; }
-  return d.result?.[1] || null;
-}
-
-/* ===== FORMAT HELPERS ===== */
-function fmtBytes(b) {
-  if (!b || b < 0) return '0 B';
-  if (b < 1024) return b + ' B';
-  if (b < 1048576) return (b/1024).toFixed(1) + ' KB';
-  if (b < 1073741824) return (b/1048576).toFixed(1) + ' MB';
-  return (b/1073741824).toFixed(2) + ' GB';
-}
-function fmtSpeed(bps) {
-  if (!bps || bps < 0) return '0 B/s';
-  if (bps < 1024) return bps.toFixed(0) + ' B/s';
-  if (bps < 1048576) return (bps/1024).toFixed(1) + ' KB/s';
-  return (bps/1048576).toFixed(2) + ' MB/s';
-}
-function fmtUptime(s) {
-  if (!s) return '--';
-  const d = Math.floor(s/86400), h = Math.floor(s%86400/3600), m = Math.floor(s%3600/60);
-  return (d ? d+'j ':'') + h+'h ' + m+'m';
-}
-/* ===== DEVICE TYPE DETECTION ===== */
-function detectDeviceType(hostname, mac) {
-  const m = DEVICES_META[mac];
-  if (m?.type && m.type !== 'auto') return m.type;
-  const h = (hostname || '').toLowerCase();
-  if (/desktop|pc-?/i.test(h)) return 'pc';
-  if (/laptop|notebook/i.test(h)) return 'laptop';
-  if (/galaxy|iphone|pixel|motorola|huawei|redmi|oneplus|oppo|samsung|phone/i.test(h)) return 'phone';
-  if (/ipad|tab/i.test(h)) return 'tablet';
-  if (/cam|ipc|nomi|blink|tapo|reolink|hikvision|dahua/i.test(h)) return 'camera';
-  if (/meross|smart.?switch|plug|sonoff|shelly|tuya/i.test(h)) return 'switch';
-  if (/tv|roku|chromecast|fire.?stick|shield|apple.?tv/i.test(h)) return 'tv';
-  if (/print|hp.?laser|epson|canon|brother/i.test(h)) return 'printer';
-  if (/home.?assistant|hass|nas|server|rasp|pi-?hole/i.test(h)) return 'server';
-  if (/sensor|capteur|esp|arduino|zigbee|mqtt/i.test(h)) return 'iot';
-  return 'other';
-}
-const TYPE_ICONS = {pc:'💻',laptop:'💻',phone:'📱',tablet:'📱',camera:'📷',switch:'🔌',tv:'📺',printer:'🖨️',server:'🖥️',iot:'📡',other:'❓'};
-const TYPE_COLORS = {pc:'var(--blue)',laptop:'var(--blue)',phone:'var(--green)',tablet:'var(--green)',camera:'var(--orange)',switch:'var(--orange)',tv:'var(--purple)',printer:'var(--muted)',server:'var(--cyan)',iot:'var(--orange)',other:'var(--muted)'};
-
-/* ===== TRAFFIC TYPE ===== */
-function classifyTraffic(entries) {
-  const types = new Set();
-  for (const e of entries) {
-    const dp = e.dport, sp = e.sport;
-    if (dp === 443 || sp === 443) types.add('HTTPS');
-    else if (dp === 80 || sp === 80) types.add('HTTP');
-    else if (dp === 53 || sp === 53) types.add('DNS');
-    else if (dp === 9993 || sp === 9993) types.add('ZeroTier');
-    else if (dp === 1883 || dp === 8883 || sp === 1883) types.add('MQTT');
-    else if (dp === 5353 || sp === 5353) types.add('mDNS');
-    else if ([554,8554,8080,8443,34567,6987].includes(dp)) types.add('Stream');
-    else if ([51820,1194,500,4500].includes(dp) || [51820,1194].includes(sp)) types.add('VPN');
-    else if (dp === 22 || sp === 22) types.add('SSH');
-    else if (dp === 123 || sp === 123) types.add('NTP');
-    else if (dp >= 6881 && dp <= 6889) types.add('P2P');
-    else types.add('Other');
-  }
-  return [...types].slice(0, 5);
-}
-const TT_CLASS = {HTTPS:'tt-https',HTTP:'tt-https',DNS:'tt-dns',Stream:'tt-stream',MQTT:'tt-iot',mDNS:'tt-dns',ZeroTier:'tt-vpn',VPN:'tt-vpn',SSH:'tt-other',NTP:'tt-other',P2P:'tt-other',Other:'tt-other'};
-
-/* ===== FETCH ALL DATA ===== */
-async function fetchData() {
-  const [sysInfo, ifDump, dhcp, ctRaw, wifi24, wifi5, iwInfo0] = await Promise.all([
-    ubus('system','info'),
-    ubus('network.interface','dump'),
-    ubus('luci-rpc','getDHCPLeases'),
-    ubus('luci','getConntrackList'),
-    ubus('iwinfo','assoclist',{device:'phy0-ap0'}),
-    ubus('iwinfo','assoclist',{device:'wlan1'}),
-    ubus('iwinfo','info',{device:'phy0-ap0'})
-  ]);
-  const ct = ctRaw ? (Array.isArray(ctRaw) ? ctRaw : (ctRaw.result || [])) : [];
-  const leases = dhcp?.dhcp_leases || [];
-  const wifi24Macs = (wifi24?.results || []).map(c => c.mac?.toUpperCase());
-  const wifi5Macs = (wifi5?.results || []).map(c => c.mac?.toUpperCase());
-  const wifiClients = {};
-  (wifi24?.results || []).forEach(c => { wifiClients[c.mac?.toUpperCase()] = c; });
-  (wifi5?.results || []).forEach(c => { wifiClients[c.mac?.toUpperCase()] = c; });
-
-  /* Map each device */
-  const devices = leases.map(l => {
-    const mac = l.macaddr?.toUpperCase();
-    const meta = DEVICES_META[mac] || {};
-    let iface = 'eth';
-    if (wifi24Macs.includes(mac)) iface = 'wifi24';
-    else if (wifi5Macs.includes(mac)) iface = 'wifi5';
-    const devCt = ct.filter(e => e.src === l.ipaddr || e.dst === l.ipaddr);
-    const txBytes = devCt.filter(e => e.src === l.ipaddr).reduce((s,e) => s + (e.bytes||0), 0);
-    const rxBytes = devCt.filter(e => e.dst === l.ipaddr).reduce((s,e) => s + (e.bytes||0), 0);
-    const prevKey = mac + '_tx';
-    const prevKeyR = mac + '_rx';
-    const now = Date.now();
-    let txSpeed = 0, rxSpeed = 0;
-    if (PREV_BYTES[prevKey]) {
-      const dt = (now - PREV_BYTES[prevKey].t) / 1000;
-      if (dt > 0) {
-        txSpeed = Math.max(0, (txBytes - PREV_BYTES[prevKey].v) / dt);
-        rxSpeed = Math.max(0, (rxBytes - PREV_BYTES[prevKeyR].v) / dt);
-      }
-    }
-    PREV_BYTES[prevKey] = {v: txBytes, t: now};
-    PREV_BYTES[prevKeyR] = {v: rxBytes, t: now};
-    const wifiInfo = wifiClients[mac];
-    return {
-      hostname: meta.name || l.hostname || mac,
-      ip: l.ipaddr, mac, iface, meta,
-      type: detectDeviceType(l.hostname, mac),
-      connections: devCt.length,
-      txBytes, rxBytes, txSpeed, rxSpeed,
-      trafficTypes: classifyTraffic(devCt),
-      signal: wifiInfo?.signal || null,
-      blocked: meta.blocked || false
-    };
+let SID='',DATA={},PB={},DM={},TH={};let canvas,ctx,W,H,animId,parts=[];
+const API='/cgi-bin/luci/admin/ubus';
+try{DM=JSON.parse(localStorage.getItem('nf_devices')||'{}');}catch(e){}
+try{TH=JSON.parse(localStorage.getItem('nf_theme')||'{}');}catch(e){}
+const PRESETS={default:{a1:'#00e676',a2:'#448aff',a3:'#ff9100',bg:'#060a14'},ocean:{a1:'#00bcd4',a2:'#0288d1',a3:'#26c6da',bg:'#051520'},fire:{a1:'#ff6d00',a2:'#ff1744',a3:'#ffab00',bg:'#140a05'},matrix:{a1:'#00ff41',a2:'#00e676',a3:'#76ff03',bg:'#050a05'},purple:{a1:'#e040fb',a2:'#7c4dff',a3:'#ea80fc',bg:'#0a0514'}};
+function setTC(t){const r=document.documentElement.style;r.setProperty('--accent1',t.a1||'#00e676');r.setProperty('--accent2',t.a2||'#448aff');r.setProperty('--accent3',t.a3||'#ff9100');r.setProperty('--bg',t.bg||'#060a14');r.setProperty('--accent1-dim',(t.a1||'#00e676')+'1a');r.setProperty('--accent2-dim',(t.a2||'#448aff')+'1a');r.setProperty('--accent3-dim',(t.a3||'#ff9100')+'1a');document.body.style.background=t.bg||'#060a14';document.getElementById('tc1').value=t.a1||'#00e676';document.getElementById('tc2').value=t.a2||'#448aff';document.getElementById('tc3').value=t.a3||'#ff9100';document.getElementById('tcbg').value=t.bg||'#060a14';}
+function applyPreset(n){TH=Object.assign({},PRESETS[n]||PRESETS.default);setTC(TH);localStorage.setItem('nf_theme',JSON.stringify(TH));document.querySelectorAll('.theme-presets button').forEach(b=>b.classList.remove('active'));event?.target?.classList?.add('active');}
+function applyCC(){TH={a1:document.getElementById('tc1').value,a2:document.getElementById('tc2').value,a3:document.getElementById('tc3').value,bg:document.getElementById('tcbg').value};setTC(TH);localStorage.setItem('nf_theme',JSON.stringify(TH));}
+function toggleThemePanel(){document.getElementById('theme-panel').classList.toggle('active');}
+if(TH.a1)setTC(TH);
+async function doLogin(){const pw=document.getElementById('login-pass').value;try{const r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({jsonrpc:'2.0',id:1,method:'call',params:['00000000000000000000000000000000','session','login',{username:'root',password:pw}]})});const d=await r.json();if(d.result?.[0]===0&&d.result?.[1]?.ubus_rpc_session){SID=d.result[1].ubus_rpc_session;document.getElementById('login-overlay').classList.add('hidden');document.getElementById('app').classList.add('active');initDash();}else{showErr();}}catch(e){showErr();}}
+function showErr(){const el=document.getElementById('login-error');el.style.display='block';setTimeout(()=>el.style.display='none',3000);}
+document.getElementById('login-pass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+async function ubus(o,m,p={}){const r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({jsonrpc:'2.0',id:1,method:'call',params:[SID,o,m,p]})});const d=await r.json();if(d.error?.code===-32002){location.reload();return null;}return d.result?.[1]||null;}
+function fmtB(b){if(!b||b<0)return'0 B';if(b<1024)return b+' B';if(b<1048576)return(b/1024).toFixed(1)+' KB';if(b<1073741824)return(b/1048576).toFixed(1)+' MB';return(b/1073741824).toFixed(2)+' GB';}
+function fmtS(s){if(!s||s<0)return'0 B/s';if(s<1024)return s.toFixed(0)+' B/s';if(s<1048576)return(s/1024).toFixed(1)+' KB/s';return(s/1048576).toFixed(2)+' MB/s';}
+function fmtU(s){if(!s)return'--';const d=Math.floor(s/86400),h=Math.floor(s%86400/3600),m=Math.floor(s%3600/60);return(d?d+'j ':'')+(h+'h ')+m+'m';}
+function dType(h,mac){const m=DM[mac];if(m?.type&&m.type!=='auto')return m.type;const n=(h||'').toLowerCase();if(/desktop|pc/i.test(n))return'pc';if(/laptop/i.test(n))return'laptop';if(/galaxy|iphone|pixel|motorola|huawei|redmi|samsung|phone|edge/i.test(n))return'phone';if(/ipad|tab/i.test(n))return'tablet';if(/cam|ipc|nomi|blink|tapo/i.test(n))return'camera';if(/meross|switch|plug|sonoff|shelly/i.test(n))return'switch';if(/tv|roku|chromecast/i.test(n))return'tv';if(/print|epson|canon/i.test(n))return'printer';if(/home.?ass|hass|nas|server|rasp/i.test(n))return'server';if(/sensor|capteur|esp|devolo/i.test(n))return'iot';return'other';}
+const IC={pc:'💻',laptop:'💻',phone:'📱',tablet:'📱',camera:'📷',switch:'🔌',tv:'📺',printer:'🖨',server:'🖥',iot:'📡',other:'?'};
+function tCol(t){return{pc:'#448aff',laptop:'#448aff',phone:'#00e676',tablet:'#00e676',camera:'#ff9100',switch:'#ff9100',tv:'#b388ff',printer:'#546e7a',server:'#18ffff',iot:'#ff9100',other:'#546e7a'}[t]||'#546e7a';}
+function clsTraf(es){const t=new Set();for(const e of es){const d=e.dport,s=e.sport;if(d===443||s===443)t.add('HTTPS');else if(d===80||s===80)t.add('HTTP');else if(d===53||s===53)t.add('DNS');else if(d===9993||s===9993)t.add('ZT');else if(d===1883||d===8883)t.add('MQTT');else if(d===5353)t.add('mDNS');else if([554,8554,8080,8443,34567].includes(d))t.add('Stream');else if([51820,1194].includes(d))t.add('VPN');else t.add('Other');}return[...t].slice(0,4);}
+const TTC={HTTPS:'tt-https',HTTP:'tt-https',DNS:'tt-dns',Stream:'tt-stream',MQTT:'tt-iot',mDNS:'tt-dns',ZT:'tt-vpn',VPN:'tt-vpn',Other:'tt-other'};
+async function fetchData(){
+  const[si,ifd,dh,ctR,w24,w5,iw0]=await Promise.all([ubus('system','info'),ubus('network.interface','dump'),ubus('luci-rpc','getDHCPLeases'),ubus('luci','getConntrackList'),ubus('iwinfo','assoclist',{device:'phy0-ap0'}),ubus('iwinfo','assoclist',{device:'wlan1'}),ubus('iwinfo','info',{device:'phy0-ap0'})]);
+  const ct=ctR?(Array.isArray(ctR)?ctR:(ctR.result||[])):[];
+  const ls=dh?.dhcp_leases||[];const w24M=(w24?.results||[]).map(c=>c.mac?.toUpperCase());const w5M=(w5?.results||[]).map(c=>c.mac?.toUpperCase());
+  const wC={};(w24?.results||[]).forEach(c=>{wC[c.mac?.toUpperCase()]=c;});(w5?.results||[]).forEach(c=>{wC[c.mac?.toUpperCase()]=c;});
+  const now=Date.now();
+  const devs=ls.map(l=>{
+    const mac=l.macaddr?.toUpperCase(),mt=DM[mac]||{};
+    let iface='eth';if(w24M.includes(mac))iface='wifi24';else if(w5M.includes(mac))iface='wifi5';
+    const dCt=ct.filter(e=>e.src===l.ipaddr||e.dst===l.ipaddr);
+    const tx=dCt.filter(e=>e.src===l.ipaddr).reduce((s,e)=>s+(e.bytes||0),0);
+    const rx=dCt.filter(e=>e.dst===l.ipaddr).reduce((s,e)=>s+(e.bytes||0),0);
+    const pk=mac+'t',pkr=mac+'r';let ts=0,rs=0;
+    if(PB[pk]){const dt=(now-PB[pk].t)/1000;if(dt>0){ts=Math.max(0,(tx-PB[pk].v)/dt);rs=Math.max(0,(rx-PB[pkr].v)/dt);}}
+    PB[pk]={v:tx,t:now};PB[pkr]={v:rx,t:now};
+    return{hostname:mt.name||l.hostname||mac,ip:l.ipaddr,mac,iface,type:dType(l.hostname,mac),conn:dCt.length,tx,rx,ts,rs,tt:clsTraf(dCt),sig:wC[mac]?.signal||null,blocked:mt.blocked||false};
   });
-  /* Sort: blocked last, then by traffic desc */
-  devices.sort((a,b) => (a.blocked?1:0)-(b.blocked?1:0) || (b.txBytes+b.rxBytes)-(a.txBytes+a.rxBytes));
-
-  const wanIf = ifDump?.interface?.find(i => i.interface === 'wan');
-  const lanIf = ifDump?.interface?.find(i => i.interface === 'lan');
-  DATA = {
-    system: sysInfo,
-    wan: wanIf,
-    lan: lanIf,
-    devices,
-    conntrack: ct,
-    wifiSSID: iwInfo0?.ssid || 'WiFi',
-    totalConns: ct.length,
-    timestamp: Date.now()
-  };
-  return DATA;
+  devs.sort((a,b)=>(a.blocked?1:0)-(b.blocked?1:0)||((b.tx+b.rx)-(a.tx+a.rx)));
+  DATA={sys:si,wan:ifd?.interface?.find(i=>i.interface==='wan'),devs,ct,ssid:iw0?.ssid||'WiFi',conns:ct.length,ts:now};
 }
-/* ===== UPDATE HEADER STATS ===== */
-function updateHeader() {
-  const d = DATA;
-  const uptime = d.system?.uptime || 0;
-  const conns = d.totalConns || 0;
-  const devCount = d.devices?.length || 0;
-  const wanUp = d.wan?.up;
-  const wanIP = d.wan?.['ipv4-address']?.[0]?.address || '--';
-  const totalTx = d.devices?.reduce((s,dev) => s + dev.txSpeed, 0) || 0;
-  const totalRx = d.devices?.reduce((s,dev) => s + dev.rxSpeed, 0) || 0;
-  document.getElementById('header-stats').innerHTML = `
-    <div class="stat-pill"><span class="dot ${wanUp?'green':'red'}"></span>WAN <span class="val">${wanIP}</span></div>
-    <div class="stat-pill"><span class="dot green"></span>↑ <span class="val">${fmtSpeed(totalTx)}</span></div>
-    <div class="stat-pill"><span class="dot blue"></span>↓ <span class="val">${fmtSpeed(totalRx)}</span></div>
-    <div class="stat-pill"><span class="dot orange"></span><span class="val">${conns}</span> flux</div>
-    <div class="stat-pill"><span class="dot blue"></span><span class="val">${devCount}</span> appareils</div>
-    <div class="stat-pill">Uptime <span class="val">${fmtUptime(uptime)}</span></div>
-  `;
+function updateHeader(){
+  const d=DATA,up=d.sys?.uptime||0,cn=d.conns||0,dc=d.devs?.length||0;
+  const wUp=d.wan?.up,wIP=d.wan?.['ipv4-address']?.[0]?.address||'--';
+  const tT=d.devs?.reduce((s,v)=>s+v.ts,0)||0,tR=d.devs?.reduce((s,v)=>s+v.rs,0)||0;
+  document.getElementById('header-stats').innerHTML=
+    '<div class="stat-pill"><span class="dot '+(wUp?'green':'')+'"></span>WAN <span class="val">'+wIP+'</span></div>'+
+    '<div class="stat-pill"><span class="dot green"></span>↑<span class="val">'+fmtS(tT)+'</span></div>'+
+    '<div class="stat-pill"><span class="dot blue"></span>↓<span class="val">'+fmtS(tR)+'</span></div>'+
+    '<div class="stat-pill"><span class="dot orange"></span><span class="val">'+cn+'</span> flux</div>'+
+    '<div class="stat-pill"><span class="val">'+dc+'</span> appareils</div>'+
+    '<div class="stat-pill">Up <span class="val">'+fmtU(up)+'</span></div>';
 }
-
-/* ===== UPDATE DEVICE LIST ===== */
-function updateDeviceList() {
-  const container = document.getElementById('device-list');
-  document.getElementById('dev-count').textContent = DATA.devices?.length || 0;
-  if (!DATA.devices) return;
-  container.innerHTML = DATA.devices.map(dev => {
-    const icon = TYPE_ICONS[dev.type] || '❓';
-    const color = TYPE_COLORS[dev.type] || 'var(--muted)';
-    const ifClass = dev.iface === 'wifi24' ? 'iface-wifi24' : dev.iface === 'wifi5' ? 'iface-wifi5' : 'iface-eth';
-    const ifLabel = dev.iface === 'wifi24' ? 'WiFi 2.4G' : dev.iface === 'wifi5' ? 'WiFi 5G' : 'Ethernet';
-    const ttBadges = dev.trafficTypes.map(t => `<span class="tt-badge ${TT_CLASS[t]||'tt-other'}">${t}</span>`).join('');
-    const blockedClass = dev.blocked ? 'blocked-card' : '';
-    const signalStr = dev.signal ? ` · ${dev.signal}dBm` : '';
-    return `<div class="dev-card ${blockedClass}" data-mac="${dev.mac}">
-      <div class="dev-card-top">
-        <div class="dev-icon" style="background:${color}22;color:${color}">${icon}</div>
-        <div class="dev-info">
-          <div class="name" onclick="openEdit('${dev.mac}')">${dev.hostname}</div>
-          <div class="ip">${dev.ip} · ${dev.mac.substring(0,8)}...${signalStr}</div>
-        </div>
-        <span class="dev-iface ${ifClass}">${ifLabel}</span>
-      </div>
-      <div class="dev-card-stats">
-        <span class="up">↑ ${fmtSpeed(dev.txSpeed)}</span>
-        <span class="down">↓ ${fmtSpeed(dev.rxSpeed)}</span>
-        <span class="total">∑ ${fmtBytes(dev.txBytes + dev.rxBytes)}</span>
-        <span class="total">· ${dev.connections} conn.</span>
-      </div>
-      <div class="traffic-types">${ttBadges}</div>
-      <div class="dev-card-actions">
-        <button class="btn-sm btn-edit" onclick="openEdit('${dev.mac}')">✏️ Renommer</button>
-        <button class="btn-sm btn-block ${dev.blocked?'active':''}" onclick="toggleBlock('${dev.mac}')">${dev.blocked?'🔓 Débloquer':'🔒 Bloquer'}</button>
-      </div>
-    </div>`;
+function updateDevs(){
+  const c=document.getElementById('device-list');document.getElementById('dev-count').textContent=DATA.devs?.length||0;
+  if(!DATA.devs)return;
+  c.innerHTML=DATA.devs.map(d=>{
+    const ic=IC[d.type]||'?',co=tCol(d.type);
+    const ifC=d.iface==='wifi24'?'iface-wifi24':d.iface==='wifi5'?'iface-wifi5':'iface-eth';
+    const ifL=d.iface==='wifi24'?'WiFi 2.4G':d.iface==='wifi5'?'WiFi 5G':'Ethernet';
+    const tt=d.tt.map(t=>'<span class="tt-badge '+(TTC[t]||'tt-other')+'">'+t+'</span>').join('');
+    const sig=d.sig?' · '+d.sig+'dBm':'';
+    return '<div class="dev-card '+(d.blocked?'blocked-card':'')+'"><div class="dev-card-top">'+
+      '<div class="dev-icon" style="background:'+co+'18;color:'+co+'">'+ic+'</div>'+
+      '<div class="dev-info"><div class="name" onclick="openEdit(\''+d.mac+'\')">'+d.hostname+'</div>'+
+      '<div class="ip">'+d.ip+' · '+d.mac.substring(0,8)+'...'+sig+'</div></div>'+
+      '<span class="dev-iface '+ifC+'">'+ifL+'</span></div>'+
+      '<div class="dev-card-stats"><span class="up">↑'+fmtS(d.ts)+'</span><span class="down">↓'+fmtS(d.rs)+'</span>'+
+      '<span class="total">∑'+fmtB(d.tx+d.rx)+'</span><span class="total">·'+d.conn+'c</span></div>'+
+      '<div class="traffic-types">'+tt+'</div>'+
+      '<div class="dev-card-actions"><button class="btn-sm btn-edit" onclick="openEdit(\''+d.mac+'\')">Renommer</button>'+
+      '<button class="btn-sm btn-block '+(d.blocked?'active':'')+'" onclick="toggleBlock(\''+d.mac+'\')">'+(d.blocked?'Débloquer':'Bloquer')+'</button></div></div>';
   }).join('');
-}
-/* ===== CANVAS TOPOLOGY ===== */
-function initCanvas() {
-  canvas = document.getElementById('topoCanvas');
-  ctx = canvas.getContext('2d');
-  resizeCanvas();
-  window.addEventListener('resize', resizeCanvas);
-}
-function resizeCanvas() {
-  const area = canvas.parentElement;
-  canvas.width = area.clientWidth * (window.devicePixelRatio || 1);
-  canvas.height = area.clientHeight * (window.devicePixelRatio || 1);
-  canvas.style.width = area.clientWidth + 'px';
-  canvas.style.height = area.clientHeight + 'px';
-  W = canvas.width; H = canvas.height;
-  ctx.setTransform(window.devicePixelRatio||1, 0, 0, window.devicePixelRatio||1, 0, 0);
-  W = area.clientWidth; H = area.clientHeight;
-}
-
-/* Node positions */
-function getTopologyNodes() {
-  const devs = DATA.devices || [];
-  const wifiDevs = devs.filter(d => d.iface === 'wifi24' || d.iface === 'wifi5');
-  const ethDevs = devs.filter(d => d.iface === 'eth');
-
-  /* Column positions: WAN | Router | Interfaces | Devices */
-  const colWan = 80;
-  const colRouter = W * 0.22;
-  const colIface = W * 0.42;
-  const colDevStart = W * 0.62;
-
-  const nodes = {};
-  /* WAN node */
-  nodes.wan = {x: colWan, y: H/2, label: 'WAN', sublabel: DATA.wan?.['ipv4-address']?.[0]?.address || '', color: '#ff9100', icon: '🌐', r: 28};
-  /* Router node */
-  nodes.router = {x: colRouter, y: H/2, label: 'OpenWrt', sublabel: '192.168.10.1', color: '#448aff', icon: '📡', r: 30};
-  /* Interface nodes */
-  const ifaceList = [];
-  if (wifiDevs.length > 0 || true) {
-    ifaceList.push({id:'wifi24', label:'WiFi 2.4GHz', sublabel: DATA.wifiSSID || '', color:'#00e676', icon:'📶', devs: devs.filter(d=>d.iface==='wifi24')});
-  }
-  ifaceList.push({id:'wifi5', label:'WiFi 5GHz', sublabel:'', color:'#448aff', icon:'📶', devs: devs.filter(d=>d.iface==='wifi5')});
-  ifaceList.push({id:'eth', label:'Ethernet', sublabel:'br-lan', color:'#ff9100', icon:'🔌', devs: ethDevs});
-
-  const ifaceSpacing = Math.min(H / (ifaceList.length + 1), 100);
-  const ifaceStartY = H/2 - (ifaceList.length - 1) * ifaceSpacing / 2;
-  ifaceList.forEach((iface, i) => {
-    const y = ifaceStartY + i * ifaceSpacing;
-    nodes['if_'+iface.id] = {x: colIface, y, label: iface.label, sublabel: iface.sublabel + ' ('+iface.devs.length+')', color: iface.color, icon: iface.icon, r: 22, devs: iface.devs};
-  });
-
-  /* Device nodes - arranged in rows per interface */
-  let allDevNodes = [];
-  ifaceList.forEach(iface => {
-    const ifNode = nodes['if_'+iface.id];
-    const dList = iface.devs;
-    const maxPerCol = Math.floor(H / 36);
-    dList.forEach((dev, di) => {
-      const col = Math.floor(di / maxPerCol);
-      const row = di % maxPerCol;
-      const totalInCol = Math.min(dList.length - col * maxPerCol, maxPerCol);
-      const x = colDevStart + col * 130;
-      const yStart = ifNode.y - (totalInCol - 1) * 18;
-      const y = yStart + row * 36;
-      const nodeId = 'dev_' + dev.mac.replace(/:/g,'');
-      nodes[nodeId] = {x, y, label: dev.hostname.substring(0,14), sublabel:'', color: TYPE_COLORS[dev.type]||'var(--muted)', icon: TYPE_ICONS[dev.type]||'?', r:14, dev, ifaceId: iface.id};
-      allDevNodes.push(nodeId);
-    });
-  });
-  return {nodes, ifaceList, allDevNodes};
-}
-
-/* Draw a node */
-function drawNode(node, time) {
-  const {x, y, label, sublabel, color, icon, r} = node;
-  /* Glow */
-  ctx.save();
-  ctx.shadowColor = color;
-  ctx.shadowBlur = 15;
-  ctx.beginPath();
-  ctx.arc(x, y, r, 0, Math.PI*2);
-  ctx.fillStyle = color + '22';
-  ctx.fill();
-  ctx.strokeStyle = color + '88';
-  ctx.lineWidth = 1.5;
-  ctx.stroke();
-  ctx.restore();
-  /* Icon */
-  ctx.font = (r > 20 ? '20px' : '14px') + ' sans-serif';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillText(icon, x, y);
-  /* Label */
-  ctx.font = 'bold ' + (r > 20 ? '13px' : '11px') + ' sans-serif';
-  ctx.fillStyle = '#e8f0fe';
-  ctx.textAlign = 'center';
-  ctx.fillText(label, x, y + r + 14);
-  if (sublabel) {
-    ctx.font = '10px sans-serif';
-    ctx.fillStyle = '#5a6a7e';
-    ctx.fillText(sublabel, x, y + r + 26);
-  }
-}
-/* Draw connection line */
-function drawLink(x1,y1,x2,y2,color,width) {
-  ctx.beginPath();
-  ctx.moveTo(x1,y1);
-  ctx.lineTo(x2,y2);
-  ctx.strokeStyle = color + '30';
-  ctx.lineWidth = width || 1;
-  ctx.stroke();
-}
-
-/* Particle class */
-class Particle {
-  constructor(x1,y1,x2,y2,color,speed,size) {
-    this.x1=x1; this.y1=y1; this.x2=x2; this.y2=y2;
-    this.color=color; this.speed=speed||0.008; this.size=size||2.5;
-    this.t=Math.random(); this.alive=true;
-  }
-  update() {
-    this.t += this.speed;
-    if (this.t >= 1) { this.t = 0; }
-  }
-  draw(ctx) {
-    const x = this.x1 + (this.x2-this.x1)*this.t;
-    const y = this.y1 + (this.y2-this.y1)*this.t;
-    ctx.beginPath();
-    ctx.arc(x,y,this.size,0,Math.PI*2);
-    ctx.fillStyle = this.color;
-    ctx.shadowColor = this.color;
-    ctx.shadowBlur = 8;
-    ctx.fill();
-    ctx.shadowBlur = 0;
-  }
-}
-
-/* Manage particles */
-function updateParticles() {
-  const topo = getTopologyNodes();
-  const nodes = topo.nodes;
-  const needed = [];
-
-  /* WAN <-> Router */
-  const wanTraffic = DATA.devices?.reduce((s,d) => s + d.txSpeed + d.rxSpeed, 0) || 0;
-  const wanCount = Math.max(1, Math.min(8, Math.floor(wanTraffic / 50000)));
-  for (let i = 0; i < wanCount; i++) {
-    needed.push({x1:nodes.wan.x,y1:nodes.wan.y,x2:nodes.router.x,y2:nodes.router.y,color:'#ff9100',speed:0.006+Math.random()*0.008,size:2+Math.random()*1.5});
-    needed.push({x1:nodes.router.x,y1:nodes.router.y,x2:nodes.wan.x,y2:nodes.wan.y,color:'#448aff',speed:0.006+Math.random()*0.008,size:2+Math.random()*1.5});
-  }
-
-  /* Router <-> Interfaces */
-  topo.ifaceList.forEach(iface => {
-    const ifNode = nodes['if_'+iface.id];
-    if (!ifNode) return;
-    const ifTraffic = iface.devs.reduce((s,d) => s+d.txSpeed+d.rxSpeed, 0);
-    const count = Math.max(1, Math.min(5, Math.floor(ifTraffic / 30000)));
-    for (let i=0; i<count; i++) {
-      needed.push({x1:nodes.router.x,y1:nodes.router.y,x2:ifNode.x,y2:ifNode.y,color:ifNode.color,speed:0.005+Math.random()*0.008,size:2});
-      needed.push({x1:ifNode.x,y1:ifNode.y,x2:nodes.router.x,y2:nodes.router.y,color:ifNode.color+'aa',speed:0.005+Math.random()*0.008,size:1.8});
-    }
-    /* Interface <-> Devices */
-    iface.devs.forEach(dev => {
-      const dnId = 'dev_' + dev.mac.replace(/:/g,'');
-      const dn = nodes[dnId];
-      if (!dn) return;
-      const devTraffic = dev.txSpeed + dev.rxSpeed;
-      if (devTraffic > 100 || dev.connections > 0) {
-        const dCount = Math.max(1, Math.min(3, Math.floor(devTraffic / 20000)));
-        for (let i=0; i<dCount; i++) {
-          if (dev.txSpeed > 0) needed.push({x1:dn.x,y1:dn.y,x2:ifNode.x,y2:ifNode.y,color:'#00e676',speed:0.006+Math.random()*0.01,size:1.5+Math.random()});
-          if (dev.rxSpeed > 0 || dev.connections > 0) needed.push({x1:ifNode.x,y1:ifNode.y,x2:dn.x,y2:dn.y,color:'#448aff',speed:0.006+Math.random()*0.01,size:1.5+Math.random()});
-        }
       }
-    });
-  });
-
-  /* Keep particle pool around target count */
-  const target = needed.length;
-  while (particles.length < target) {
-    const p = needed[particles.length % needed.length];
-    particles.push(new Particle(p.x1,p.y1,p.x2,p.y2,p.color,p.speed,p.size));
-  }
-  while (particles.length > target + 20) particles.pop();
-
-  /* Update positions from needed (in case topology changed) */
-  particles.forEach((p,i) => {
-    if (needed[i % needed.length]) {
-      const n = needed[i % needed.length];
-      p.x1=n.x1; p.y1=n.y1; p.x2=n.x2; p.y2=n.y2; p.color=n.color;
-    }
-  });
+function initCanvas(){canvas=document.getElementById('topoCanvas');ctx=canvas.getContext('2d');resizeCanvas();window.addEventListener('resize',resizeCanvas);}
+function resizeCanvas(){const a=canvas.parentElement,dpr=window.devicePixelRatio||1;canvas.width=a.clientWidth*dpr;canvas.height=a.clientHeight*dpr;canvas.style.width=a.clientWidth+'px';canvas.style.height=a.clientHeight+'px';ctx.setTransform(dpr,0,0,dpr,0,0);W=a.clientWidth;H=a.clientHeight;}
+function getN(){
+  const ds=DATA.devs||[];const cW=55,cR=W*.20,cI=W*.40,cD=W*.58;const n={};
+  n.wan={x:cW,y:H/2,l:'WAN',s:DATA.wan?.['ipv4-address']?.[0]?.address||'',c:'#ff9100',r:18};
+  n.rtr={x:cR,y:H/2,l:'OpenWrt',s:'192.168.10.1',c:'#448aff',r:20};
+  const ifs=[{id:'wifi24',l:'WiFi 2.4G',s:DATA.ssid||'',c:'#00e676',d:ds.filter(d=>d.iface==='wifi24')},{id:'wifi5',l:'WiFi 5G',s:'',c:'#448aff',d:ds.filter(d=>d.iface==='wifi5')},{id:'eth',l:'Ethernet',s:'br-lan',c:'#ff9100',d:ds.filter(d=>d.iface==='eth')}];
+  const sp=Math.min(H/(ifs.length+1),75);const sy=H/2-(ifs.length-1)*sp/2;
+  ifs.forEach((f,i)=>{n['i_'+f.id]={x:cI,y:sy+i*sp,l:f.l,s:f.s+' ('+f.d.length+')',c:f.c,r:15,d:f.d};});
+  const ad=[];
+  ifs.forEach(f=>{const ifN=n['i_'+f.id];const dl=f.d;const mx=Math.max(1,Math.floor((H-16)/24));
+    dl.forEach((d,i)=>{const col=Math.floor(i/mx),row=i%mx;const ic=Math.min(dl.length-col*mx,mx);
+      const x=cD+col*105,yS=ifN.y-(ic-1)*12,y=yS+row*24;
+      const id='d_'+d.mac.replace(/:/g,'');n[id]={x,y,l:d.hostname.substring(0,11),s:'',c:f.c,r:9,dv:d};ad.push(id);});});
+  return{n,ifs,ad};
 }
-
-/* Main render loop */
-let lastParticleUpdate = 0;
-function renderFrame(time) {
+function drawN(nd){const{x,y,l,s,c,r}=nd;ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fillStyle=c+'15';ctx.fill();ctx.strokeStyle=c+'55';ctx.lineWidth=0.8;ctx.stroke();ctx.beginPath();ctx.arc(x,y,2.5,0,Math.PI*2);ctx.fillStyle=c;ctx.fill();ctx.font='bold '+(r>12?'9':'7')+'px sans-serif';ctx.fillStyle='#b0bec5';ctx.textAlign='center';ctx.fillText(l,x,y+r+8);if(s){ctx.font='7px sans-serif';ctx.fillStyle='#546e7a';ctx.fillText(s,x,y+r+16);}}
+function drawL(x1,y1,x2,y2,c,w){ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.strokeStyle=(c||'#fff')+'18';ctx.lineWidth=w||0.6;ctx.stroke();}
+class Pt{constructor(a,b,c,d,col,sp,sz){this.a=a;this.b=b;this.c=c;this.d=d;this.col=col;this.sp=sp||.008;this.sz=sz||1.5;this.t=Math.random();}
+  update(){this.t+=this.sp;if(this.t>=1)this.t=0;}
+  draw(x){const px=this.a+(this.c-this.a)*this.t,py=this.b+(this.d-this.b)*this.t;x.beginPath();x.arc(px,py,this.sz,0,Math.PI*2);x.fillStyle=this.col;x.fill();}}
+function updParts(){const{n,ifs}=getN();const nd=[];
+  const wT=DATA.devs?.reduce((s,d)=>s+d.ts+d.rs,0)||0;const wC=Math.max(1,Math.min(5,Math.floor(wT/50000)));
+  for(let i=0;i<wC;i++){nd.push({a:n.wan.x,b:n.wan.y,c:n.rtr.x,d:n.rtr.y,col:'#ff9100',sp:.005+Math.random()*.007,sz:1.3+Math.random()});nd.push({a:n.rtr.x,b:n.rtr.y,c:n.wan.x,d:n.wan.y,col:'#448aff',sp:.005+Math.random()*.007,sz:1.3+Math.random()});}
+  ifs.forEach(f=>{const ifN=n['i_'+f.id];if(!ifN)return;const iT=f.d.reduce((s,d)=>s+d.ts+d.rs,0);const c=Math.max(1,Math.min(3,Math.floor(iT/30000)));
+    for(let i=0;i<c;i++){nd.push({a:n.rtr.x,b:n.rtr.y,c:ifN.x,d:ifN.y,col:f.c,sp:.004+Math.random()*.006,sz:1.2});nd.push({a:ifN.x,b:ifN.y,c:n.rtr.x,d:n.rtr.y,col:f.c+'99',sp:.004+Math.random()*.006,sz:1});}
+    f.d.forEach(dv=>{const did='d_'+dv.mac.replace(/:/g,''),dn=n[did];if(!dn)return;if(dv.ts>0||dv.conn>0){nd.push({a:dn.x,b:dn.y,c:ifN.x,d:ifN.y,col:'#00e676',sp:.005+Math.random()*.008,sz:.8+Math.random()*.5});nd.push({a:ifN.x,b:ifN.y,c:dn.x,d:dn.y,col:'#448aff',sp:.005+Math.random()*.008,sz:.8+Math.random()*.5});}});});
+  while(parts.length<nd.length){const p=nd[parts.length%nd.length];parts.push(new Pt(p.a,p.b,p.c,p.d,p.col,p.sp,p.sz));}
+  while(parts.length>nd.length+8)parts.pop();
+  parts.forEach((p,i)=>{if(nd[i%nd.length]){const q=nd[i%nd.length];p.a=q.a;p.b=q.b;p.c=q.c;p.d=q.d;p.col=q.col;}});
+                   }
+let lPU=0;
+function render(t){
   ctx.clearRect(0,0,W,H);
-
-  /* Background grid */
-  ctx.strokeStyle = 'rgba(255,255,255,0.02)';
-  ctx.lineWidth = 1;
-  for (let x=0;x<W;x+=40){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
-  for (let y=0;y<H;y+=40){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
-
-  const topo = getTopologyNodes();
-  const nodes = topo.nodes;
-
-  /* Draw links */
-  /* WAN -> Router */
-  drawLink(nodes.wan.x, nodes.wan.y, nodes.router.x, nodes.router.y, '#ff9100', 2);
-  /* Router -> Interfaces */
-  topo.ifaceList.forEach(iface => {
-    const ifNode = nodes['if_'+iface.id];
-    if (ifNode) drawLink(nodes.router.x, nodes.router.y, ifNode.x, ifNode.y, ifNode.color, 1.5);
-    /* Interface -> Devices */
-    iface.devs.forEach(dev => {
-      const dnId = 'dev_' + dev.mac.replace(/:/g,'');
-      const dn = nodes[dnId];
-      if (dn && ifNode) drawLink(ifNode.x, ifNode.y, dn.x, dn.y, dn.color, 0.8);
-    });
-  });
-
-  /* Draw particles */
-  if (time - lastParticleUpdate > 2000) { updateParticles(); lastParticleUpdate = time; }
-  particles.forEach(p => { p.update(); p.draw(ctx); });
-
-  /* Draw nodes */
-  drawNode(nodes.wan, time);
-  drawNode(nodes.router, time);
-  topo.ifaceList.forEach(iface => {
-    const ifNode = nodes['if_'+iface.id];
-    if (ifNode) drawNode(ifNode, time);
-  });
-  topo.allDevNodes.forEach(id => {
-    if (nodes[id]) drawNode(nodes[id], time);
-  });
-
-  /* Radar sweep on router */
-  const angle = (time * 0.001) % (Math.PI * 2);
-  ctx.save();
-  ctx.globalAlpha = 0.08;
-  ctx.beginPath();
-  ctx.moveTo(nodes.router.x, nodes.router.y);
-  ctx.arc(nodes.router.x, nodes.router.y, 60, angle, angle + 0.8);
-  ctx.closePath();
-  ctx.fillStyle = '#448aff';
-  ctx.fill();
-  ctx.restore();
-
-  animId = requestAnimationFrame(renderFrame);
+  ctx.strokeStyle='rgba(255,255,255,0.012)';ctx.lineWidth=0.5;
+  for(let x=0;x<W;x+=50){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+  for(let y=0;y<H;y+=50){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+  const{n,ifs,ad}=getN();
+  drawL(n.wan.x,n.wan.y,n.rtr.x,n.rtr.y,'#ff9100',1.2);
+  ifs.forEach(f=>{const ifN=n['i_'+f.id];if(!ifN)return;drawL(n.rtr.x,n.rtr.y,ifN.x,ifN.y,f.c,.8);f.d.forEach(dv=>{const did='d_'+dv.mac.replace(/:/g,''),dn=n[did];if(dn)drawL(ifN.x,ifN.y,dn.x,dn.y,f.c,.4);});});
+  if(t-lPU>2000){updParts();lPU=t;}
+  parts.forEach(p=>{p.update();p.draw(ctx);});
+  drawN(n.wan);drawN(n.rtr);
+  ifs.forEach(f=>{const ifN=n['i_'+f.id];if(ifN)drawN(ifN);});
+  ad.forEach(id=>{if(n[id])drawN(n[id]);});
+  const ang=(t*.0008)%(Math.PI*2);ctx.save();ctx.globalAlpha=0.04;ctx.beginPath();ctx.moveTo(n.rtr.x,n.rtr.y);ctx.arc(n.rtr.x,n.rtr.y,40,ang,ang+.5);ctx.closePath();ctx.fillStyle='#448aff';ctx.fill();ctx.restore();
+  animId=requestAnimationFrame(render);
 }
-/* ===== DEVICE EDIT ===== */
-function openEdit(mac) {
-  const meta = DEVICES_META[mac] || {};
-  const dev = DATA.devices?.find(d => d.mac === mac);
-  document.getElementById('edit-mac').value = mac;
-  document.getElementById('edit-name').value = meta.name || dev?.hostname || '';
-  document.getElementById('edit-type').value = meta.type || 'auto';
-  document.getElementById('edit-modal').classList.add('active');
-}
-function closeModal() {
-  document.getElementById('edit-modal').classList.remove('active');
-}
-function saveDevice() {
-  const mac = document.getElementById('edit-mac').value;
-  const name = document.getElementById('edit-name').value.trim();
-  const type = document.getElementById('edit-type').value;
-  if (!DEVICES_META[mac]) DEVICES_META[mac] = {};
-  if (name) DEVICES_META[mac].name = name;
-  else delete DEVICES_META[mac].name;
-  DEVICES_META[mac].type = type;
-  localStorage.setItem('nf_devices', JSON.stringify(DEVICES_META));
-  closeModal();
-  updateDeviceList();
-}
-
-/* ===== BLOCK / UNBLOCK ===== */
-async function toggleBlock(mac) {
-  const dev = DATA.devices?.find(d => d.mac === mac);
-  if (!dev) return;
-  const isBlocked = DEVICES_META[mac]?.blocked;
-  if (!DEVICES_META[mac]) DEVICES_META[mac] = {};
-
-  if (isBlocked) {
-    /* Unblock: remove firewall rule */
-    DEVICES_META[mac].blocked = false;
-    /* Try to delete the rule via uci */
-    await ubus('uci','delete',{config:'firewall',type:'rule',match:{name:'nf_block_'+mac.replace(/:/g,'')}});
-    await ubus('uci','commit',{config:'firewall'});
-    await ubus('luci','setInitAction',{name:'firewall',action:'restart'});
-  } else {
-    /* Block: add firewall rule to drop all traffic from this IP */
-    DEVICES_META[mac].blocked = true;
-    await ubus('uci','add',{config:'firewall',type:'rule',name:'nf_block_'+mac.replace(/:/g,''),values:{
-      name:'nf_block_'+mac.replace(/:/g,''),
-      src:'lan', dest:'wan',
-      src_ip: dev.ip,
-      target:'DROP',
-      enabled:'1'
-    }});
-    await ubus('uci','commit',{config:'firewall'});
-    await ubus('luci','setInitAction',{name:'firewall',action:'restart'});
-  }
-  localStorage.setItem('nf_devices', JSON.stringify(DEVICES_META));
-  updateDeviceList();
-}
-
-/* ===== PANEL TOGGLE ===== */
-function togglePanel() {
-  const list = document.getElementById('device-list');
-  const icon = document.getElementById('panel-toggle');
-  if (list.style.display === 'none') {
-    list.style.display = 'grid';
-    icon.classList.remove('collapsed');
-  } else {
-    list.style.display = 'none';
-    icon.classList.add('collapsed');
-  }
-}
-
-/* ===== INIT ===== */
-async function initDashboard() {
-  initCanvas();
-  await fetchData();
-  updateHeader();
-  updateDeviceList();
-  requestAnimationFrame(renderFrame);
-  /* Refresh data every 5 seconds */
-  setInterval(async () => {
-    await fetchData();
-    updateHeader();
-    updateDeviceList();
-  }, 5000);
-}
-
-/* Close modal on backdrop click */
-document.getElementById('edit-modal').addEventListener('click', function(e) {
-  if (e.target === this) closeModal();
-});
+function openEdit(mac){const mt=DM[mac]||{},dv=DATA.devs?.find(d=>d.mac===mac);document.getElementById('edit-mac').value=mac;document.getElementById('edit-name').value=mt.name||dv?.hostname||'';document.getElementById('edit-type').value=mt.type||'auto';document.getElementById('edit-modal').classList.add('active');}
+function closeModal(){document.getElementById('edit-modal').classList.remove('active');}
+function saveDevice(){const mac=document.getElementById('edit-mac').value,nm=document.getElementById('edit-name').value.trim(),tp=document.getElementById('edit-type').value;if(!DM[mac])DM[mac]={};if(nm)DM[mac].name=nm;else delete DM[mac].name;DM[mac].type=tp;localStorage.setItem('nf_devices',JSON.stringify(DM));closeModal();updateDevs();}
+async function toggleBlock(mac){const dv=DATA.devs?.find(d=>d.mac===mac);if(!dv)return;if(!DM[mac])DM[mac]={};
+  if(DM[mac].blocked){DM[mac].blocked=false;await ubus('uci','delete',{config:'firewall',type:'rule',match:{name:'nf_block_'+mac.replace(/:/g,'')}});await ubus('uci','commit',{config:'firewall'});await ubus('luci','setInitAction',{name:'firewall',action:'restart'});}
+  else{DM[mac].blocked=true;await ubus('uci','add',{config:'firewall',type:'rule',name:'nf_block_'+mac.replace(/:/g,''),values:{name:'nf_block_'+mac.replace(/:/g,''),src:'lan',dest:'wan',src_ip:dv.ip,target:'DROP',enabled:'1'}});await ubus('uci','commit',{config:'firewall'});await ubus('luci','setInitAction',{name:'firewall',action:'restart'});}
+  localStorage.setItem('nf_devices',JSON.stringify(DM));updateDevs();}
+function togglePanel(){const l=document.getElementById('device-list'),ic=document.getElementById('panel-toggle');if(l.style.display==='none'){l.style.display='grid';ic.classList.remove('collapsed');}else{l.style.display='none';ic.classList.add('collapsed');}}
+async function initDash(){initCanvas();await fetchData();updateHeader();updateDevs();requestAnimationFrame(render);setInterval(async()=>{await fetchData();updateHeader();updateDevs();},5000);}
+document.getElementById('edit-modal').addEventListener('click',function(e){if(e.target===this)closeModal();});
+document.addEventListener('click',function(e){const tp=document.getElementById('theme-panel');if(tp.classList.contains('active')&&!tp.contains(e.target)&&!e.target.classList.contains('btn-theme'))tp.classList.remove('active');});
 </script>
 </body>
 </html>
