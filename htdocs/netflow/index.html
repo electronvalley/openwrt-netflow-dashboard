@@ -5,879 +5,717 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>OpenWrt NetFlow Dashboard</title>
 <style>
-/* ===== VARIABLES ===== */
-:root {
-  --bg: #060a14;
-  --panel: rgba(8,14,28,0.92);
-  --card: rgba(14,22,42,0.7);
-  --card-hover: rgba(18,28,52,0.85);
-  --border: rgba(255,255,255,0.04);h
-  --green: #00e676;
-  --green-dim: rgba(0,230,118,0.08);
-  --blue: #448aff;
-  --blue-dim: rgba(68,138,255,0.08);
-  --orange: #ff9100;
-  --orange-dim: rgba(255,145,0,0.08);
-  --red: #ff5252;
-  --purple: #b388ff;
-  --purple-dim: rgba(179,136,255,0.08);
-  --cyan: #18ffff;
-  --text: #c8d6e5;
-  --text-bright: #e8f0fe;
-  --muted: #4a5568;
-  --glow-green: 0 0 20px rgba(0,230,118,0.15);
-  --glow-blue: 0 0 20px rgba(68,138,255,0.15);
-  --glow-purple: 0 0 20px rgba(179,136,255,0.15);
-}
-/* ===== RESET ===== */
-*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
-html,body{height:100%;overflow:hidden}
-body{background:var(--bg);color:var(--text);font-family:'Inter','Segoe UI',system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased}
-::-webkit-scrollbar{width:4px}
-::-webkit-scrollbar-track{background:transparent}
-::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.06);border-radius:4px}
-::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,0.12)}
-/* ===== LAYOUT ===== */
-#app{
-  display:none;
-  grid-template-columns:260px 1fr 260px;
-  grid-template-rows:52px 1fr 160px;
-  height:100vh;gap:0;
-}
-/* ===== HEADER ===== */
-#hdr{
-  grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;
-  padding:0 24px;background:linear-gradient(180deg,rgba(8,14,28,0.98) 0%,rgba(8,14,28,0.88) 100%);
-  border-bottom:1px solid rgba(0,230,118,0.06);backdrop-filter:blur(12px);z-index:10;
-}
-#hdr h1{font-size:13px;font-weight:700;color:#fff;display:flex;align-items:center;gap:10px;letter-spacing:0.5px}
-.pulse-dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 12px var(--green),0 0 4px var(--green);animation:pulse 2s cubic-bezier(0.4,0,0.6,1) infinite}
-@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.4;transform:scale(0.85)}}
-.header-stats{display:flex;gap:28px;align-items:center}
-.stat-item{text-align:center;position:relative;padding:0 4px}
-.stat-item .val{font-size:15px;font-weight:700;color:var(--green);letter-spacing:-0.3px;font-variant-numeric:tabular-nums}
-.stat-item .val.up{color:var(--orange)}.stat-item .val.conn{color:var(--cyan)}.stat-item .val.dev{color:var(--purple)}
-.stat-item .lbl{font-size:7px;text-transform:uppercase;letter-spacing:2.5px;color:var(--muted);margin-top:2px}
-.stat-item::after{content:'';position:absolute;right:-14px;top:50%;transform:translateY(-50%);width:1px;height:20px;background:rgba(255,255,255,0.04)}
-.stat-item:last-child::after{display:none}
-/* ===== LEFT PANEL ===== */
-#left-panel{
-  background:var(--panel);border-right:1px solid rgba(0,230,118,0.04);
-  padding:16px 14px;overflow-y:auto;display:flex;flex-direction:column;gap:12px;
-}
-.panel-title{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:3px;color:var(--green);display:flex;align-items:center;gap:8px;padding-bottom:6px;border-bottom:1px solid rgba(0,230,118,0.06)}
-.panel-title .icon{font-size:11px}
-.iface-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:4px;transition:all 0.3s cubic-bezier(0.4,0,0.2,1);position:relative;overflow:hidden;cursor:default}
-.iface-card::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;background:var(--green);border-radius:0 3px 3px 0;opacity:0.7;transition:opacity 0.3s}
-.iface-card:hover{background:var(--card-hover);border-color:rgba(0,230,118,0.15);transform:translateX(3px)}
-.iface-card.down{opacity:0.3}.iface-card.down::before{background:var(--red)}
-.iface-name{font-size:10px;font-weight:600;color:var(--text-bright);display:flex;align-items:center;gap:8px;padding-left:8px}
-.status-dot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green);flex-shrink:0}
-.status-dot.off{background:var(--red);box-shadow:0 0 6px var(--red)}
-.iface-stats{display:flex;justify-content:space-between;margin-top:4px;font-size:8px;padding-left:8px;color:var(--muted)}
-.iface-stats .rx{color:var(--blue)}.iface-stats .tx{color:var(--orange)}
-.iface-rate{font-size:9px;font-weight:600;color:var(--green);margin-top:3px;padding-left:8px;display:flex;gap:12px}
-.iface-rate .dl{color:var(--blue)}.iface-rate .ul{color:var(--orange)}
-.iface-bar{height:2px;background:rgba(255,255,255,0.02);border-radius:2px;margin-top:4px;overflow:hidden}
-.iface-bar-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,var(--green),var(--cyan));transition:width 1s cubic-bezier(0.4,0,0.2,1)}
-/* ===== CENTER CANVAS ===== */
-#center-panel{position:relative;overflow:hidden;background:radial-gradient(ellipse at center,rgba(0,230,118,0.015) 0%,transparent 65%)}
-#flow-canvas{display:block;width:100%;height:100%}
-/* Tooltip overlay */
-#tooltip{position:absolute;pointer-events:none;display:none;background:rgba(6,10,20,0.95);border:1px solid rgba(0,230,118,0.2);border-radius:8px;padding:10px 14px;font-size:10px;color:var(--text);backdrop-filter:blur(8px);box-shadow:0 8px 24px rgba(0,0,0,0.5);z-index:20;min-width:140px;max-width:220px}
-#tooltip .tt-title{font-weight:700;color:#fff;font-size:11px;margin-bottom:4px}
-#tooltip .tt-row{display:flex;justify-content:space-between;gap:12px;margin-bottom:2px}
-#tooltip .tt-label{color:var(--muted)}.tt-val{font-weight:600}
-/* ===== RIGHT PANEL ===== */
-#right-panel{background:var(--panel);border-left:1px solid rgba(179,136,255,0.04);padding:16px 14px;overflow-y:auto;display:flex;flex-direction:column;gap:12px}
-.panel-title.purple{color:var(--purple);border-bottom-color:rgba(179,136,255,0.06)}
-.device-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:8px 10px;margin-bottom:3px;transition:all 0.3s cubic-bezier(0.4,0,0.2,1);position:relative;display:flex;align-items:center;gap:10px}
-.device-card:hover{background:var(--card-hover);border-color:rgba(179,136,255,0.15)}
-.device-card.active{border-left:3px solid var(--purple)}
-.device-card.active::after{content:'';position:absolute;top:6px;right:8px;width:5px;height:5px;border-radius:50%;background:var(--purple);box-shadow:0 0 8px var(--purple);animation:pulse 1.5s ease-in-out infinite}
-.dev-icon{font-size:16px;flex-shrink:0;width:24px;text-align:center}
-.dev-info{flex:1;min-width:0}
-.dev-name{font-size:9px;font-weight:600;color:var(--text-bright);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.dev-ip{font-size:7px;color:var(--muted);margin-top:1px;font-family:'JetBrains Mono',monospace}
-.dev-meta{display:flex;gap:8px;margin-top:3px;font-size:7px}
-.dev-meta .conns{color:var(--purple);font-weight:600}.dev-meta .bytes{color:var(--blue)}.dev-meta .mac{color:var(--muted)}
-/* ===== BOTTOM PANEL ===== */
-#bottom-panel{
-  grid-column:1/-1;display:grid;grid-template-columns:repeat(4,1fr);gap:10px;
-  padding:12px 20px;background:linear-gradient(0deg,rgba(8,14,28,0.98) 0%,rgba(8,14,28,0.85) 100%);
-  border-top:1px solid var(--border);backdrop-filter:blur(12px);
-}
-.stat-box{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 14px;position:relative;overflow:hidden}
-.stat-box::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(0,230,118,0.12),transparent)}
-.stat-box h3{font-size:7px;font-weight:700;text-transform:uppercase;letter-spacing:3px;color:var(--muted);margin-bottom:6px}
-.stat-box .big-val{font-size:20px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums}
-.stat-box .sub-val{font-size:7px;color:var(--muted);margin-top:3px}
-.proto-row{display:flex;gap:20px;margin-top:4px}
-.proto-item .pv{font-size:16px;font-weight:700}.proto-item .pl{font-size:7px;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;margin-top:1px}
-.traffic-bar-wrap{margin-bottom:2px}
-.traffic-bar-row{display:flex;align-items:center;gap:6px;margin-bottom:2px;font-size:7px}
-.traffic-bar-label{width:42px;color:var(--orange);font-weight:600;text-align:right;font-size:7px}
-.traffic-bar-track{flex:1;height:3px;background:rgba(255,255,255,0.02);border-radius:3px;overflow:hidden}
-.traffic-bar-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--orange),#ff6d00);transition:width 0.6s}
-.traffic-bar-val{width:50px;text-align:right;color:var(--muted);font-size:7px}
-.sys-row{display:flex;justify-content:space-between;font-size:8px;margin-bottom:2px}
-.sys-bar{height:3px;background:rgba(255,255,255,0.02);border-radius:3px;overflow:hidden;margin-bottom:4px}
-.sys-bar-fill{height:100%;border-radius:3px;transition:width 0.6s}
-.wan-chart{display:flex;gap:1px;height:28px;align-items:flex-end;margin-top:4px}
-.wan-bar{flex:1;border-radius:2px 2px 0 0;min-height:1px;transition:height 0.4s}
-.wan-speed{display:flex;gap:16px;margin-top:3px}
-.wan-speed .ws-val{font-size:14px;font-weight:700}.wan-speed .ws-lbl{font-size:7px;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
-/* ===== LOGIN OVERLAY ===== */
-#login-overlay{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at center,rgba(8,16,36,0.98) 0%,rgba(4,6,14,0.99) 100%)}
+:root{--bg:#060a14;--panel:rgba(8,14,28,0.95);--card:rgba(14,22,42,0.7);--card-hover:rgba(18,28,52,0.85);--border:rgba(255,255,255,0.06);--green:#00e676;--green-dim:rgba(0,230,118,0.12);--blue:#448aff;--blue-dim:rgba(68,138,255,0.12);--orange:#ff9100;--orange-dim:rgba(255,145,0,0.12);--red:#ff5252;--red-dim:rgba(255,82,82,0.12);--purple:#b388ff;--cyan:#18ffff;--text:#c8d6e5;--text-bright:#e8f0fe;--muted:#5a6a7e;--glow-green:0 0 20px rgba(0,230,118,0.2);--glow-blue:0 0 20px rgba(68,138,255,0.2);--glow-red:0 0 20px rgba(255,82,82,0.2)}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-apple-system,sans-serif;font-size:15px;overflow-x:hidden}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--muted);border-radius:3px}
+#login-overlay{position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;align-items:center;justify-content:center}
 #login-overlay.hidden{display:none}
-#login-overlay canvas{position:absolute;inset:0;z-index:0}
-#login-box{position:relative;z-index:1;background:rgba(10,18,36,0.85);border:1px solid rgba(0,230,118,0.1);border-radius:20px;padding:44px 40px;width:360px;text-align:center;backdrop-filter:blur(24px);box-shadow:0 32px 80px rgba(0,0,0,0.6),var(--glow-green)}
-#login-box h2{color:#fff;font-size:20px;font-weight:800;margin-bottom:4px;letter-spacing:-0.3px}
-#login-box .logo{font-size:32px;margin-bottom:10px;filter:drop-shadow(0 0 12px rgba(0,230,118,0.3))}
-#login-box .subtitle{color:var(--muted);font-size:10px;margin-bottom:24px;letter-spacing:0.5px}
-#login-box input{width:100%;padding:12px 14px;margin-bottom:8px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:10px;color:#fff;font-size:12px;outline:none;transition:all 0.3s}
-#login-box input:focus{border-color:rgba(0,230,118,0.4);box-shadow:0 0 20px rgba(0,230,118,0.06);background:rgba(255,255,255,0.05)}
-#login-box input::placeholder{color:rgba(255,255,255,0.2)}
-#login-box button{width:100%;padding:13px;margin-top:6px;background:linear-gradient(135deg,#00e676 0%,#00c853 100%);border:none;border-radius:10px;color:#fff;font-weight:700;font-size:13px;cursor:pointer;transition:all 0.3s;letter-spacing:0.5px;box-shadow:0 4px 16px rgba(0,230,118,0.2)}
-#login-box button:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(0,230,118,0.35)}
-#login-box button:active{transform:translateY(0)}
-#login-error{color:var(--red);font-size:10px;margin-top:8px;display:none}
-/* ===== SECURITY SECTION ===== */
-.security-section{margin-top:auto}
-.sec-card{background:var(--card);border:1px solid rgba(0,230,118,0.06);border-radius:10px;padding:10px 12px}
-.sec-row{display:flex;justify-content:space-between;align-items:center;font-size:8px;margin-bottom:3px}.sec-row:last-child{margin-bottom:0}
-.sec-badge{padding:2px 7px;border-radius:4px;font-size:7px;font-weight:700;text-transform:uppercase;letter-spacing:1px}
-.sec-badge.ok{background:rgba(0,230,118,0.1);color:var(--green)}.sec-badge.warn{background:rgba(255,145,0,0.1);color:var(--orange)}.sec-badge.danger{background:rgba(255,82,82,0.1);color:var(--red)}
-/* ===== UTILITIES ===== */
-.cg{color:var(--green)}.cb{color:var(--blue)}.co{color:var(--orange)}.cr{color:var(--red)}.cp{color:var(--purple)}.cc{color:var(--cyan)}.fw7{font-weight:700}
-.mono{font-family:'JetBrains Mono','Fira Code',monospace}
-/* ===== SCAN LINE ANIMATION ===== */
-@keyframes scanline{0%{top:-2px}100%{top:100%}}
+.login-box{background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:40px;width:380px;text-align:center;box-shadow:var(--glow-blue)}
+.login-box h1{font-size:26px;color:var(--text-bright);margin-bottom:8px}
+.login-box p{color:var(--muted);margin-bottom:24px;font-size:14px}
+.login-box input{width:100%;padding:14px 16px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text-bright);font-size:15px;margin-bottom:16px;outline:none}
+.login-box input:focus{border-color:var(--blue);box-shadow:var(--glow-blue)}
+.login-box button{width:100%;padding:14px;background:linear-gradient(135deg,var(--blue),var(--purple));border:none;border-radius:8px;color:#fff;font-size:16px;font-weight:600;cursor:pointer;transition:.3s}
+.login-box button:hover{transform:translateY(-1px);box-shadow:var(--glow-blue)}
+.login-box .error{color:var(--red);font-size:13px;margin-top:8px;display:none}
+#app{display:none;flex-direction:column;height:100vh}
+#app.active{display:flex}
+.header{display:flex;align-items:center;justify-content:space-between;padding:12px 24px;background:var(--panel);border-bottom:1px solid var(--border);flex-shrink:0}
+.header-left{display:flex;align-items:center;gap:16px}
+.header-left h1{font-size:20px;color:var(--text-bright);font-weight:700;letter-spacing:-0.5px}
+.header-right{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.stat-pill{display:flex;align-items:center;gap:6px;padding:6px 14px;background:var(--card);border:1px solid var(--border);border-radius:20px;font-size:13px}
+.stat-pill .dot{width:8px;height:8px;border-radius:50%}
+.stat-pill .dot.green{background:var(--green);box-shadow:0 0 6px var(--green)}
+.stat-pill .dot.blue{background:var(--blue)}
+.stat-pill .dot.orange{background:var(--orange)}
+.stat-pill .val{color:var(--text-bright);font-weight:600}
+.topology-area{flex:1;position:relative;overflow:hidden;min-height:250px}
+#topoCanvas{width:100%;height:100%;display:block}
+.bottom-panel{background:var(--panel);border-top:1px solid var(--border);max-height:42vh;overflow-y:auto;flex-shrink:0}
+.panel-header{display:flex;align-items:center;justify-content:space-between;padding:10px 24px;border-bottom:1px solid var(--border);cursor:pointer;user-select:none}
+.panel-header h2{font-size:15px;color:var(--text-bright);font-weight:600}
+.panel-header .toggle-icon{color:var(--muted);transition:transform .3s;font-size:18px}
+.panel-header .toggle-icon.collapsed{transform:rotate(180deg)}
+.device-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:12px;padding:16px 24px}
+.dev-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:8px;transition:all .2s;position:relative}
+.dev-card:hover{background:var(--card-hover);border-color:rgba(255,255,255,0.1)}
+.dev-card.blocked-card{border-color:var(--red);opacity:0.6}
+.dev-card-top{display:flex;align-items:center;gap:10px}
+.dev-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.dev-info{flex:1;min-width:0}
+.dev-info .name{color:var(--text-bright);font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
+.dev-info .name:hover{text-decoration:underline}
+.dev-info .ip{color:var(--muted);font-size:12px}
+.dev-iface{padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.3px}
+.iface-wifi24{background:var(--green-dim);color:var(--green)}
+.iface-wifi5{background:var(--blue-dim);color:var(--blue)}
+.iface-eth{background:var(--orange-dim);color:var(--orange)}
+.dev-card-stats{display:flex;gap:12px;font-size:12px}
+.dev-card-stats .up{color:var(--green)}
+.dev-card-stats .down{color:var(--blue)}
+.dev-card-stats .total{color:var(--muted)}
+.traffic-types{display:flex;flex-wrap:wrap;gap:3px}
+.tt-badge{padding:1px 6px;border-radius:3px;font-size:10px;font-weight:600}
+.tt-https{background:var(--green-dim);color:var(--green)}
+.tt-dns{background:var(--blue-dim);color:var(--blue)}
+.tt-stream{background:rgba(179,136,255,0.12);color:var(--purple)}
+.tt-iot{background:var(--orange-dim);color:var(--orange)}
+.tt-vpn{background:rgba(24,255,255,0.12);color:var(--cyan)}
+.tt-other{background:var(--card);color:var(--muted)}
+.dev-card-actions{display:flex;gap:6px;margin-top:4px}
+.btn-sm{padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--text);font-size:11px;cursor:pointer;transition:.2s}
+.btn-sm:hover{border-color:var(--text-bright);color:var(--text-bright)}
+.btn-sm.btn-block:hover,.btn-sm.btn-block.active{border-color:var(--red);color:var(--red);background:var(--red-dim)}
+.btn-sm.btn-edit:hover{border-color:var(--blue);color:var(--blue)}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:1000;display:none;align-items:center;justify-content:center}
+.modal-overlay.active{display:flex}
+.modal{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:24px;width:400px;max-width:90vw}
+.modal h3{color:var(--text-bright);margin-bottom:16px;font-size:17px}
+.modal label{display:block;color:var(--muted);font-size:12px;margin-bottom:4px;margin-top:12px;text-transform:uppercase;letter-spacing:0.3px}
+.modal input,.modal select{width:100%;padding:10px 12px;background:var(--card);border:1px solid var(--border);border-radius:6px;color:var(--text-bright);font-size:14px;outline:none}
+.modal input:focus,.modal select:focus{border-color:var(--blue)}
+.modal-actions{display:flex;gap:10px;margin-top:20px;justify-content:flex-end}
+.modal-actions button{padding:8px 20px;border-radius:6px;border:none;cursor:pointer;font-size:14px;font-weight:500}
+.modal-actions .btn-save{background:var(--blue);color:#fff}
+.modal-actions .btn-cancel{background:var(--card);color:var(--text);border:1px solid var(--border)}
+.settings-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)}
+.settings-row:last-child{border:none}
+.settings-row label{margin:0;font-size:13px;color:var(--text)}
+.toggle-sw{position:relative;width:40px;height:22px;cursor:pointer}
+.toggle-sw input{opacity:0;width:0;height:0}
+.toggle-sw .slider{position:absolute;inset:0;background:var(--card);border:1px solid var(--border);border-radius:11px;transition:.3s}
+.toggle-sw .slider:before{content:'';position:absolute;width:16px;height:16px;border-radius:50%;background:var(--muted);left:2px;top:2px;transition:.3s}
+.toggle-sw input:checked+.slider{background:var(--blue-dim);border-color:var(--blue)}
+.toggle-sw input:checked+.slider:before{background:var(--blue);transform:translateX(18px)}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.fade-in{animation:fadeIn .4s ease-out}
 </style>
 </head>
 <body>
-<!-- ===== LOGIN SCREEN ===== -->
 <div id="login-overlay">
-  <canvas id="login-canvas"></canvas>
-  <div id="login-box">
-    <div class="logo">🌐</div>
-    <h2>NetFlow Dashboard</h2>
-    <div class="subtitle">Monitoring réseau temps réel • OpenWrt</div>
-    <input id="input-host" value="192.168.10.1" placeholder="Adresse du routeur">
-    <input id="input-user" value="root" placeholder="Utilisateur">
-    <input type="password" id="input-pass" placeholder="Mot de passe" autofocus>
+  <div class="login-box fade-in">
+    <h1>🌐 NetFlow</h1>
+    <p>OpenWrt Network Monitor</p>
+    <input type="password" id="login-pass" placeholder="Mot de passe root" autofocus>
     <button onclick="doLogin()">Connexion</button>
-    <div id="login-error">⚠ Échec d'authentification</div>
+    <div class="error" id="login-error">Mot de passe incorrect</div>
   </div>
 </div>
-<!-- ===== MAIN APP ===== -->
 <div id="app">
-  <div id="hdr">
-    <h1><span class="pulse-dot"></span>NetFlow Dashboard</h1>
-    <div class="header-stats">
-      <div class="stat-item"><div class="val" id="h-dl">--</div><div class="lbl">Download</div></div>
-      <div class="stat-item"><div class="val up" id="h-ul">--</div><div class="lbl">Upload</div></div>
-      <div class="stat-item"><div class="val conn" id="h-conn">--</div><div class="lbl">Connexions</div></div>
-      <div class="stat-item"><div class="val dev" id="h-dev">--</div><div class="lbl">Appareils</div></div>
-      <div class="stat-item"><div class="val up" id="h-uptime">--</div><div class="lbl">Uptime</div></div>
+  <div class="header">
+    <div class="header-left">
+      <h1>🌐 NetFlow Dashboard</h1>
     </div>
+    <div class="header-right" id="header-stats"></div>
   </div>
-  <div id="left-panel">
-    <div class="panel-title"><span class="icon">⚡</span> Interfaces Réseau</div>
-    <div id="iface-list"></div>
-    <div class="security-section">
-      <div class="panel-title" style="color:var(--cyan);border-bottom-color:rgba(24,255,255,0.06)"><span class="icon">🛡️</span> Sécurité</div>
-      <div class="sec-card" id="sec-info"></div>
+  <div class="topology-area">
+    <canvas id="topoCanvas"></canvas>
+  </div>
+  <div class="bottom-panel" id="bottom-panel">
+    <div class="panel-header" onclick="togglePanel()">
+      <h2>📱 Appareils connectés (<span id="dev-count">0</span>)</h2>
+      <span class="toggle-icon" id="panel-toggle">▲</span>
     </div>
+    <div id="device-list" class="device-grid"></div>
   </div>
-  <div id="center-panel">
-    <canvas id="flow-canvas"></canvas>
-    <div id="tooltip"></div>
-  </div>
-  <div id="right-panel">
-    <div class="panel-title purple"><span class="icon">📱</span> Appareils Connectés</div>
-    <div id="device-list"></div>
-  </div>
-  <div id="bottom-panel">
-    <div class="stat-box"><h3>🔒 Protocoles</h3><div id="box-proto"></div></div>
-    <div class="stat-box"><h3>🌐 Types de Trafic</h3><div id="box-traffic"></div></div>
-    <div class="stat-box"><h3>💻 Système</h3><div id="box-sys"></div></div>
-    <div class="stat-box"><h3>⚡ Débit WAN</h3><div id="box-wan-speed"></div><div class="wan-chart" id="wan-chart"></div></div>
+</div>
+<div class="modal-overlay" id="edit-modal">
+  <div class="modal fade-in">
+    <h3>✏️ Modifier l'appareil</h3>
+    <input type="hidden" id="edit-mac">
+    <label>Nom personnalisé</label>
+    <input type="text" id="edit-name" placeholder="Mon appareil">
+    <label>Type d'appareil</label>
+    <select id="edit-type">
+      <option value="auto">Auto-détection</option>
+      <option value="pc">💻 PC / Desktop</option>
+      <option value="laptop">💻 Laptop</option>
+      <option value="phone">📱 Téléphone</option>
+      <option value="tablet">📱 Tablette</option>
+      <option value="camera">📷 Caméra</option>
+      <option value="iot">📡 IoT / Capteur</option>
+      <option value="tv">📺 TV / Media</option>
+      <option value="printer">🖨️ Imprimante</option>
+      <option value="server">🖥️ Serveur</option>
+      <option value="switch">🔌 Switch / Plug</option>
+      <option value="other">❓ Autre</option>
+    </select>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal()">Annuler</button>
+      <button class="btn-save" onclick="saveDevice()">Enregistrer</button>
+    </div>
   </div>
 </div>
 <script>
-/* ===== STATE ===== */
-var CFG = { host: '', user: '', token: null };
-var DATA = {
-  interfaces: {}, conntrack: [], sysinfo: null, hints: {}, leases: [],
-  prevRx: {}, prevTx: {}, prevTime: 0, rates: {}, wanHistory: [], wireless: {}
-};
-var canvas, ctx, particles = [], frameCount = 0;
-var hoveredNode = null, mouseX = 0, mouseY = 0;
-var nodePositions = [];
+/* ===== GLOBAL STATE ===== */
+let SID = '', DATA = {}, PREV_BYTES = {}, DEVICES_META = {}, SETTINGS = {showPanel:true};
+let canvas, ctx, W, H, animId, particles = [];
+const API = '/cgi-bin/luci/admin/ubus';
 
-/* ===== LOGIN BACKGROUND ANIMATION ===== */
-(function initLoginBg() {
-  var c = document.getElementById('login-canvas');
-  if (!c) return;
-  var x = c.getContext('2d');
-  var dots = [];
-  function resize() { c.width = window.innerWidth; c.height = window.innerHeight; }
-  resize(); window.addEventListener('resize', resize);
-  for (var i = 0; i < 70; i++) {
-    dots.push({ x: Math.random() * c.width, y: Math.random() * c.height,
-      vx: (Math.random() - 0.5) * 0.35, vy: (Math.random() - 0.5) * 0.35,
-      r: 1 + Math.random() * 1.5 });
-  }
-  function draw() {
-    x.clearRect(0, 0, c.width, c.height);
-    for (var i = 0; i < dots.length; i++) {
-      var d = dots[i];
-      d.x += d.vx; d.y += d.vy;
-      if (d.x < 0 || d.x > c.width) d.vx *= -1;
-      if (d.y < 0 || d.y > c.height) d.vy *= -1;
-      x.beginPath(); x.arc(d.x, d.y, d.r, 0, Math.PI * 2);
-      x.fillStyle = 'rgba(0,230,118,0.15)'; x.fill();
-      for (var j = i + 1; j < dots.length; j++) {
-        var d2 = dots[j], dx = d.x - d2.x, dy = d.y - d2.y;
-        var dist = Math.sqrt(dx * dx + dy * dy);
-        if (dist < 130) {
-          x.beginPath(); x.moveTo(d.x, d.y); x.lineTo(d2.x, d2.y);
-          x.strokeStyle = 'rgba(0,230,118,' + (0.035 * (1 - dist / 130)) + ')';
-          x.lineWidth = 0.5; x.stroke();
-        }
-      }
-    }
-    requestAnimationFrame(draw);
-  }
-  draw();
-})();
+/* Load saved device metadata from localStorage */
+try { DEVICES_META = JSON.parse(localStorage.getItem('nf_devices') || '{}'); } catch(e){}
+try { SETTINGS = JSON.parse(localStorage.getItem('nf_settings') || '{}'); } catch(e){}
 
 /* ===== LOGIN ===== */
-function doLogin() {
-  CFG.host = document.getElementById('input-host').value;
-  CFG.user = document.getElementById('input-user').value;
-  var pw = document.getElementById('input-pass').value;
-  var errEl = document.getElementById('login-error');
-  errEl.style.display = 'none';
-  fetch('http://' + CFG.host + '/ubus/', {
-    method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'call',
-      params: ['00000000000000000000000000000000', 'session', 'login', { username: CFG.user, password: pw }] })
-  }).then(function(r) { return r.json(); })
-  .then(function(j) {
-    if (j.result && j.result[0] === 0) {
-      CFG.token = j.result[1].ubus_rpc_session;
+async function doLogin() {
+  const pw = document.getElementById('login-pass').value;
+  try {
+    const r = await fetch(API, {method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({jsonrpc:'2.0',id:1,method:'call',params:['00000000000000000000000000000000','session','login',{username:'root',password:pw}]})});
+    const d = await r.json();
+    if (d.result?.[0] === 0 && d.result?.[1]?.ubus_rpc_session) {
+      SID = d.result[1].ubus_rpc_session;
       document.getElementById('login-overlay').classList.add('hidden');
-      document.getElementById('app').style.display = 'grid';
-      initApp();
-    } else { errEl.style.display = 'block'; }
-  }).catch(function() { errEl.style.display = 'block'; });
+      document.getElementById('app').classList.add('active');
+      initDashboard();
+    } else { showLoginError(); }
+  } catch(e) { showLoginError(); }
 }
-document.getElementById('input-pass').addEventListener('keydown', function(e) { if (e.key === 'Enter') doLogin(); });
+function showLoginError() {
+  const el = document.getElementById('login-error');
+  el.style.display = 'block';
+  setTimeout(() => el.style.display = 'none', 3000);
+}
+document.getElementById('login-pass').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
 
 /* ===== UBUS CALL ===== */
-function ubusCall(obj, method, params) {
-  return fetch('http://' + CFG.host + '/ubus/', {
-    method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'call', params: [CFG.token, obj, method, params || {}] })
-  }).then(function(r) { return r.json(); })
-  .then(function(j) { return (j.result && j.result[0] === 0) ? j.result[1] : null; })
-  .catch(function() { return null; });
+async function ubus(obj, method, params={}) {
+  const r = await fetch(API, {method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({jsonrpc:'2.0',id:1,method:'call',params:[SID,obj,method,params]})});
+  const d = await r.json();
+  if (d.error?.code === -32002) { location.reload(); return null; }
+  return d.result?.[1] || null;
 }
+
+/* ===== FORMAT HELPERS ===== */
+function fmtBytes(b) {
+  if (!b || b < 0) return '0 B';
+  if (b < 1024) return b + ' B';
+  if (b < 1048576) return (b/1024).toFixed(1) + ' KB';
+  if (b < 1073741824) return (b/1048576).toFixed(1) + ' MB';
+  return (b/1073741824).toFixed(2) + ' GB';
+}
+function fmtSpeed(bps) {
+  if (!bps || bps < 0) return '0 B/s';
+  if (bps < 1024) return bps.toFixed(0) + ' B/s';
+  if (bps < 1048576) return (bps/1024).toFixed(1) + ' KB/s';
+  return (bps/1048576).toFixed(2) + ' MB/s';
+}
+function fmtUptime(s) {
+  if (!s) return '--';
+  const d = Math.floor(s/86400), h = Math.floor(s%86400/3600), m = Math.floor(s%3600/60);
+  return (d ? d+'j ':'') + h+'h ' + m+'m';
+}
+/* ===== DEVICE TYPE DETECTION ===== */
+function detectDeviceType(hostname, mac) {
+  const m = DEVICES_META[mac];
+  if (m?.type && m.type !== 'auto') return m.type;
+  const h = (hostname || '').toLowerCase();
+  if (/desktop|pc-?/i.test(h)) return 'pc';
+  if (/laptop|notebook/i.test(h)) return 'laptop';
+  if (/galaxy|iphone|pixel|motorola|huawei|redmi|oneplus|oppo|samsung|phone/i.test(h)) return 'phone';
+  if (/ipad|tab/i.test(h)) return 'tablet';
+  if (/cam|ipc|nomi|blink|tapo|reolink|hikvision|dahua/i.test(h)) return 'camera';
+  if (/meross|smart.?switch|plug|sonoff|shelly|tuya/i.test(h)) return 'switch';
+  if (/tv|roku|chromecast|fire.?stick|shield|apple.?tv/i.test(h)) return 'tv';
+  if (/print|hp.?laser|epson|canon|brother/i.test(h)) return 'printer';
+  if (/home.?assistant|hass|nas|server|rasp|pi-?hole/i.test(h)) return 'server';
+  if (/sensor|capteur|esp|arduino|zigbee|mqtt/i.test(h)) return 'iot';
+  return 'other';
+}
+const TYPE_ICONS = {pc:'💻',laptop:'💻',phone:'📱',tablet:'📱',camera:'📷',switch:'🔌',tv:'📺',printer:'🖨️',server:'🖥️',iot:'📡',other:'❓'};
+const TYPE_COLORS = {pc:'var(--blue)',laptop:'var(--blue)',phone:'var(--green)',tablet:'var(--green)',camera:'var(--orange)',switch:'var(--orange)',tv:'var(--purple)',printer:'var(--muted)',server:'var(--cyan)',iot:'var(--orange)',other:'var(--muted)'};
+
+/* ===== TRAFFIC TYPE ===== */
+function classifyTraffic(entries) {
+  const types = new Set();
+  for (const e of entries) {
+    const dp = e.dport, sp = e.sport;
+    if (dp === 443 || sp === 443) types.add('HTTPS');
+    else if (dp === 80 || sp === 80) types.add('HTTP');
+    else if (dp === 53 || sp === 53) types.add('DNS');
+    else if (dp === 9993 || sp === 9993) types.add('ZeroTier');
+    else if (dp === 1883 || dp === 8883 || sp === 1883) types.add('MQTT');
+    else if (dp === 5353 || sp === 5353) types.add('mDNS');
+    else if ([554,8554,8080,8443,34567,6987].includes(dp)) types.add('Stream');
+    else if ([51820,1194,500,4500].includes(dp) || [51820,1194].includes(sp)) types.add('VPN');
+    else if (dp === 22 || sp === 22) types.add('SSH');
+    else if (dp === 123 || sp === 123) types.add('NTP');
+    else if (dp >= 6881 && dp <= 6889) types.add('P2P');
+    else types.add('Other');
+  }
+  return [...types].slice(0, 5);
+}
+const TT_CLASS = {HTTPS:'tt-https',HTTP:'tt-https',DNS:'tt-dns',Stream:'tt-stream',MQTT:'tt-iot',mDNS:'tt-dns',ZeroTier:'tt-vpn',VPN:'tt-vpn',SSH:'tt-other',NTP:'tt-other',P2P:'tt-other',Other:'tt-other'};
 
 /* ===== FETCH ALL DATA ===== */
-function fetchAllData() {
-  Promise.all([
-    ubusCall('luci-rpc', 'getNetworkDevices'),
-    ubusCall('system', 'info'),
-    ubusCall('luci-rpc', 'getDHCPLeases'),
-    ubusCall('luci-rpc', 'getHostHints'),
-    ubusCall('luci', 'getConntrackList'),
-    ubusCall('luci-rpc', 'getWirelessDevices')
-  ]).then(function(results) {
-    var nd = results[0], si = results[1], dh = results[2];
-    var hh = results[3], ct = results[4], wd = results[5];
-    var now = Date.now();
-    if (nd) {
-      for (var n in nd) {
-        if (n === 'lo') continue;
-        var rx = (nd[n].stats || {}).rx_bytes || 0;
-        var tx = (nd[n].stats || {}).tx_bytes || 0;
-        if (DATA.prevRx[n] !== undefined && DATA.prevTime) {
-          var dt = (now - DATA.prevTime) / 1000;
-          if (dt > 0) DATA.rates[n] = { rx: Math.max(0, (rx - DATA.prevRx[n]) / dt), tx: Math.max(0, (tx - DATA.prevTx[n]) / dt) };
-        }
-        DATA.prevRx[n] = rx; DATA.prevTx[n] = tx;
+async function fetchData() {
+  const [sysInfo, ifDump, dhcp, ctRaw, wifi24, wifi5, iwInfo0] = await Promise.all([
+    ubus('system','info'),
+    ubus('network.interface','dump'),
+    ubus('luci-rpc','getDHCPLeases'),
+    ubus('luci','getConntrackList'),
+    ubus('iwinfo','assoclist',{device:'phy0-ap0'}),
+    ubus('iwinfo','assoclist',{device:'wlan1'}),
+    ubus('iwinfo','info',{device:'phy0-ap0'})
+  ]);
+  const ct = ctRaw ? (Array.isArray(ctRaw) ? ctRaw : (ctRaw.result || [])) : [];
+  const leases = dhcp?.dhcp_leases || [];
+  const wifi24Macs = (wifi24?.results || []).map(c => c.mac?.toUpperCase());
+  const wifi5Macs = (wifi5?.results || []).map(c => c.mac?.toUpperCase());
+  const wifiClients = {};
+  (wifi24?.results || []).forEach(c => { wifiClients[c.mac?.toUpperCase()] = c; });
+  (wifi5?.results || []).forEach(c => { wifiClients[c.mac?.toUpperCase()] = c; });
+
+  /* Map each device */
+  const devices = leases.map(l => {
+    const mac = l.macaddr?.toUpperCase();
+    const meta = DEVICES_META[mac] || {};
+    let iface = 'eth';
+    if (wifi24Macs.includes(mac)) iface = 'wifi24';
+    else if (wifi5Macs.includes(mac)) iface = 'wifi5';
+    const devCt = ct.filter(e => e.src === l.ipaddr || e.dst === l.ipaddr);
+    const txBytes = devCt.filter(e => e.src === l.ipaddr).reduce((s,e) => s + (e.bytes||0), 0);
+    const rxBytes = devCt.filter(e => e.dst === l.ipaddr).reduce((s,e) => s + (e.bytes||0), 0);
+    const prevKey = mac + '_tx';
+    const prevKeyR = mac + '_rx';
+    const now = Date.now();
+    let txSpeed = 0, rxSpeed = 0;
+    if (PREV_BYTES[prevKey]) {
+      const dt = (now - PREV_BYTES[prevKey].t) / 1000;
+      if (dt > 0) {
+        txSpeed = Math.max(0, (txBytes - PREV_BYTES[prevKey].v) / dt);
+        rxSpeed = Math.max(0, (rxBytes - PREV_BYTES[prevKeyR].v) / dt);
       }
-      DATA.prevTime = now; DATA.interfaces = nd;
     }
-    if (si) DATA.sysinfo = si;
-    if (dh) DATA.leases = dh.dhcp_leases || [];
-    if (hh) DATA.hints = hh;
-    if (ct) DATA.conntrack = Array.isArray(ct) ? ct : (ct.result || []);
-    if (wd) DATA.wireless = wd;
-    var wr = DATA.rates['wan'];
-    if (wr) {
-      DATA.wanHistory.push({ rx: wr.rx, tx: wr.tx, t: now });
-      if (DATA.wanHistory.length > 60) DATA.wanHistory.shift();
-    }
-    updateUI();
+    PREV_BYTES[prevKey] = {v: txBytes, t: now};
+    PREV_BYTES[prevKeyR] = {v: rxBytes, t: now};
+    const wifiInfo = wifiClients[mac];
+    return {
+      hostname: meta.name || l.hostname || mac,
+      ip: l.ipaddr, mac, iface, meta,
+      type: detectDeviceType(l.hostname, mac),
+      connections: devCt.length,
+      txBytes, rxBytes, txSpeed, rxSpeed,
+      trafficTypes: classifyTraffic(devCt),
+      signal: wifiInfo?.signal || null,
+      blocked: meta.blocked || false
+    };
   });
+  /* Sort: blocked last, then by traffic desc */
+  devices.sort((a,b) => (a.blocked?1:0)-(b.blocked?1:0) || (b.txBytes+b.rxBytes)-(a.txBytes+a.rxBytes));
+
+  const wanIf = ifDump?.interface?.find(i => i.interface === 'wan');
+  const lanIf = ifDump?.interface?.find(i => i.interface === 'lan');
+  DATA = {
+    system: sysInfo,
+    wan: wanIf,
+    lan: lanIf,
+    devices,
+    conntrack: ct,
+    wifiSSID: iwInfo0?.ssid || 'WiFi',
+    totalConns: ct.length,
+    timestamp: Date.now()
+  };
+  return DATA;
 }
-/* ===== UTILITIES ===== */
-function fmtBytes(b) {
-  if (!b || b === 0) return '0 B';
-  var k = 1024, s = ['B', 'KB', 'MB', 'GB', 'TB'];
-  var i = Math.floor(Math.log(Math.abs(b)) / Math.log(k));
-  i = Math.min(i, s.length - 1);
-  return (b / Math.pow(k, i)).toFixed(1) + ' ' + s[i];
-}
-function fmtRate(b) { if (!b || b < 1) return '0 B/s'; return fmtBytes(b) + '/s'; }
-function fmtUptime(s) {
-  var d = Math.floor(s / 86400), h = Math.floor((s % 86400) / 3600), m = Math.floor((s % 3600) / 60);
-  if (d > 0) return d + 'j ' + h + 'h';
-  if (h > 0) return h + 'h ' + m + 'm';
-  return m + 'm';
-}
-
-/* Device type detection by hostname/MAC */
-function getDeviceIcon(name, mac) {
-  var n = (name || '').toLowerCase();
-  if (n.indexOf('iphone') !== -1 || n.indexOf('ipad') !== -1 || n.indexOf('apple') !== -1) return '🍎';
-  if (n.indexOf('samsung') !== -1 || n.indexOf('galaxy') !== -1) return '📱';
-  if (n.indexOf('tv') !== -1 || n.indexOf('shield') !== -1 || n.indexOf('chromecast') !== -1 || n.indexOf('firestick') !== -1) return '📺';
-  if (n.indexOf('ps5') !== -1 || n.indexOf('ps4') !== -1 || n.indexOf('xbox') !== -1 || n.indexOf('switch') !== -1 || n.indexOf('console') !== -1) return '🎮';
-  if (n.indexOf('macbook') !== -1 || n.indexOf('laptop') !== -1 || n.indexOf('notebook') !== -1) return '💻';
-  if (n.indexOf('pc') !== -1 || n.indexOf('desktop') !== -1 || n.indexOf('windows') !== -1) return '🖥️';
-  if (n.indexOf('print') !== -1 || n.indexOf('hp-') !== -1 || n.indexOf('canon') !== -1 || n.indexOf('epson') !== -1) return '🖨️';
-  if (n.indexOf('echo') !== -1 || n.indexOf('alexa') !== -1 || n.indexOf('google-home') !== -1 || n.indexOf('homepod') !== -1) return '🔊';
-  if (n.indexOf('nest') !== -1 || n.indexOf('hub') !== -1 || n.indexOf('smart') !== -1) return '🏠';
-  if (n.indexOf('ring') !== -1 || n.indexOf('cam') !== -1 || n.indexOf('doorbell') !== -1) return '📷';
-  if (n.indexOf('esp') !== -1 || n.indexOf('tasmota') !== -1 || n.indexOf('shelly') !== -1 || n.indexOf('sonoff') !== -1) return '💡';
-  if (n.indexOf('android') !== -1 || n.indexOf('pixel') !== -1 || n.indexOf('oneplus') !== -1 || n.indexOf('xiaomi') !== -1 || n.indexOf('redmi') !== -1 || n.indexOf('oppo') !== -1) return '📱';
-  return '📡';
+/* ===== UPDATE HEADER STATS ===== */
+function updateHeader() {
+  const d = DATA;
+  const uptime = d.system?.uptime || 0;
+  const conns = d.totalConns || 0;
+  const devCount = d.devices?.length || 0;
+  const wanUp = d.wan?.up;
+  const wanIP = d.wan?.['ipv4-address']?.[0]?.address || '--';
+  const totalTx = d.devices?.reduce((s,dev) => s + dev.txSpeed, 0) || 0;
+  const totalRx = d.devices?.reduce((s,dev) => s + dev.rxSpeed, 0) || 0;
+  document.getElementById('header-stats').innerHTML = `
+    <div class="stat-pill"><span class="dot ${wanUp?'green':'red'}"></span>WAN <span class="val">${wanIP}</span></div>
+    <div class="stat-pill"><span class="dot green"></span>↑ <span class="val">${fmtSpeed(totalTx)}</span></div>
+    <div class="stat-pill"><span class="dot blue"></span>↓ <span class="val">${fmtSpeed(totalRx)}</span></div>
+    <div class="stat-pill"><span class="dot orange"></span><span class="val">${conns}</span> flux</div>
+    <div class="stat-pill"><span class="dot blue"></span><span class="val">${devCount}</span> appareils</div>
+    <div class="stat-pill">Uptime <span class="val">${fmtUptime(uptime)}</span></div>
+  `;
 }
 
-/* ===== UPDATE UI ===== */
-function updateUI() {
-  var wr = DATA.rates['wan'] || { rx: 0, tx: 0 };
-  document.getElementById('h-dl').textContent = fmtRate(wr.rx);
-  document.getElementById('h-ul').textContent = fmtRate(wr.tx);
-  document.getElementById('h-conn').textContent = DATA.conntrack.length || '--';
-  document.getElementById('h-dev').textContent = DATA.leases.length || '--';
-  if (DATA.sysinfo) document.getElementById('h-uptime').textContent = fmtUptime(DATA.sysinfo.uptime);
-
-  /* Left: Interfaces */
-  var ifOrder = ['wan', 'br-lan', 'phy0-ap0', 'lan1', 'lan2', 'lan3', 'wlan1'];
-  var ifLabels = { wan: 'WAN (Internet)', 'br-lan': 'Bridge LAN', 'phy0-ap0': 'WiFi 2.4GHz', lan1: 'LAN 1', lan2: 'LAN 2', lan3: 'LAN 3', wlan1: 'WiFi 5GHz' };
-  var maxRate = 1;
-  for (var n in DATA.rates) { var rr = DATA.rates[n]; if ((rr.rx || 0) + (rr.tx || 0) > maxRate) maxRate = (rr.rx || 0) + (rr.tx || 0); }
-  var ifHtml = '';
-  for (var i = 0; i < ifOrder.length; i++) {
-    var nm = ifOrder[i], iface = DATA.interfaces[nm];
-    if (!iface) continue;
-    var rate = DATA.rates[nm] || { rx: 0, tx: 0 };
-    var isUp = iface.flags ? iface.flags.up : false;
-    var pct = Math.min(100, ((rate.rx + rate.tx) / maxRate) * 100);
-    ifHtml += '<div class="iface-card' + (isUp ? '' : ' down') + '">';
-    ifHtml += '<div class="iface-name"><span class="status-dot' + (isUp ? '' : ' off') + '"></span>' + (ifLabels[nm] || nm) + '</div>';
-    ifHtml += '<div class="iface-stats"><span class="rx">↓ ' + fmtBytes((iface.stats || {}).rx_bytes || 0) + '</span>';
-    ifHtml += '<span class="tx">↑ ' + fmtBytes((iface.stats || {}).tx_bytes || 0) + '</span></div>';
-    ifHtml += '<div class="iface-rate"><span class="dl">↓ ' + fmtRate(rate.rx) + '</span>';
-    ifHtml += '<span class="ul">↑ ' + fmtRate(rate.tx) + '</span></div>';
-    ifHtml += '<div class="iface-bar"><div class="iface-bar-fill" style="width:' + pct + '%"></div></div></div>';
-  }
-  document.getElementById('iface-list').innerHTML = ifHtml;
-
-  /* Security */
-  var totalConn = DATA.conntrack.length;
-  var suspPorts = [23,445,3389,8080,8443,5900,4444,1433,3306,6379,27017];
-  var suspCount = 0, extConns = 0, protoCount = { tcp: 0, udp: 0, other: 0 };
-  for (var i = 0; i < DATA.conntrack.length; i++) {
-    var c = DATA.conntrack[i];
-    if (c.dport && suspPorts.indexOf(parseInt(c.dport)) !== -1) suspCount++;
-    if (c.dst && !c.dst.startsWith('192.168.') && !c.dst.startsWith('10.') && !c.dst.startsWith('172.')) extConns++;
-    if (c.layer4 === 'tcp') protoCount.tcp++; else if (c.layer4 === 'udp') protoCount.udp++; else protoCount.other++;
-  }
-  var secStatus = suspCount === 0 ? 'ok' : (suspCount < 5 ? 'warn' : 'danger');
-  var secLabel = suspCount === 0 ? 'Sécurisé' : (suspCount < 5 ? 'Attention' : 'Alerte');
-  var fwStatus = DATA.conntrack.length > 0 ? 'ok' : 'warn';
-  var secHtml = '';
-  secHtml += '<div class="sec-row"><span>État</span><span class="sec-badge ' + secStatus + '">' + secLabel + '</span></div>';
-  secHtml += '<div class="sec-row"><span>Firewall</span><span class="sec-badge ' + fwStatus + '">Actif</span></div>';
-  secHtml += '<div class="sec-row"><span>Ports suspects</span><span class="' + (suspCount > 0 ? 'co' : 'cg') + ' fw7">' + suspCount + '</span></div>';
-  secHtml += '<div class="sec-row"><span>Conn. externes</span><span class="cc fw7">' + extConns + '</span></div>';
-  secHtml += '<div class="sec-row"><span>Total</span><span class="cg fw7">' + totalConn + '</span></div>';
-  document.getElementById('sec-info').innerHTML = secHtml;
-
-  /* Right: Devices */
-  var devConns = {}, devBytes = {};
-  for (var i = 0; i < DATA.conntrack.length; i++) {
-    var c = DATA.conntrack[i];
-    devConns[c.src] = (devConns[c.src] || 0) + 1;
-    devBytes[c.src] = (devBytes[c.src] || 0) + (c.bytes || 0);
-  }
-  var devices = DATA.leases.map(function(l) {
-    return { name: l.hostname || 'Inconnu', ip: l.ipaddr, mac: l.macaddr || '',
-      conns: devConns[l.ipaddr] || 0, bytes: devBytes[l.ipaddr] || 0 };
-  }).sort(function(a, b) { return b.bytes - a.bytes; });
-  var devHtml = '';
-  for (var i = 0; i < devices.length; i++) {
-    var d = devices[i];
-    devHtml += '<div class="device-card' + (d.conns > 0 ? ' active' : '') + '">';
-    devHtml += '<div class="dev-icon">' + getDeviceIcon(d.name, d.mac) + '</div>';
-    devHtml += '<div class="dev-info"><div class="dev-name">' + d.name + '</div>';
-    devHtml += '<div class="dev-ip">' + d.ip + '</div>';
-    devHtml += '<div class="dev-meta"><span class="conns">' + d.conns + ' conn</span>';
-    devHtml += '<span class="bytes">' + fmtBytes(d.bytes) + '</span>';
-    if (d.mac) devHtml += '<span class="mac">' + d.mac.substring(0, 8) + '...</span>';
-    devHtml += '</div></div></div>';
-  }
-  document.getElementById('device-list').innerHTML = devHtml;
-  /* Bottom: Protocols */
-  var protoHtml = '<div class="proto-row">';
-  protoHtml += '<div class="proto-item"><div class="pv cb">' + protoCount.tcp + '</div><div class="pl">TCP</div></div>';
-  protoHtml += '<div class="proto-item"><div class="pv cg">' + protoCount.udp + '</div><div class="pl">UDP</div></div>';
-  if (protoCount.other > 0) protoHtml += '<div class="proto-item"><div class="pv co">' + protoCount.other + '</div><div class="pl">Autre</div></div>';
-  protoHtml += '</div>';
-  var totalBytes = 0;
-  for (var i = 0; i < DATA.conntrack.length; i++) totalBytes += DATA.conntrack[i].bytes || 0;
-  protoHtml += '<div class="sub-val" style="margin-top:4px">Total: ' + fmtBytes(totalBytes) + '</div>';
-  document.getElementById('box-proto').innerHTML = protoHtml;
-
-  /* Bottom: Traffic Types */
-  var portBytes = {};
-  var portLabels = { 443:'HTTPS', 80:'HTTP', 53:'DNS', 22:'SSH', 8883:'MQTT', 5228:'Google', 123:'NTP',
-    8266:'IoT', 9993:'ZeroTier', 8802:'Stream', 993:'IMAP', 587:'SMTP', 1883:'MQTT', 5353:'mDNS',
-    67:'DHCP', 68:'DHCP', 1900:'UPnP', 3478:'STUN', 5060:'SIP', 8080:'Proxy' };
-  for (var i = 0; i < DATA.conntrack.length; i++) {
-    var c = DATA.conntrack[i];
-    if (c.dport) portBytes[c.dport] = (portBytes[c.dport] || 0) + (c.bytes || 0);
-  }
-  var topPorts = Object.keys(portBytes).sort(function(a, b) { return portBytes[b] - portBytes[a]; }).slice(0, 5);
-  var trafficHtml = '<div class="traffic-bar-wrap" style="margin-top:2px">';
-  var maxPortBytes = portBytes[topPorts[0]] || 1;
-  for (var i = 0; i < topPorts.length; i++) {
-    var p = topPorts[i], label = portLabels[p] || ('P' + p);
-    var pct = Math.max(3, (portBytes[p] / maxPortBytes) * 100);
-    trafficHtml += '<div class="traffic-bar-row"><span class="traffic-bar-label">' + label + '</span>';
-    trafficHtml += '<div class="traffic-bar-track"><div class="traffic-bar-fill" style="width:' + pct + '%"></div></div>';
-    trafficHtml += '<span class="traffic-bar-val">' + fmtBytes(portBytes[p]) + '</span></div>';
-  }
-  trafficHtml += '</div>';
-  document.getElementById('box-traffic').innerHTML = trafficHtml;
-
-  /* Bottom: System */
-  if (DATA.sysinfo) {
-    var mem = DATA.sysinfo.memory;
-    var memPct = Math.round(((mem.total - mem.available) / mem.total) * 100);
-    var cpuLoad = (DATA.sysinfo.load[0] / 65536).toFixed(2);
-    var sysHtml = '';
-    sysHtml += '<div class="sys-row"><span>CPU Load</span><span class="cg fw7">' + cpuLoad + '</span></div>';
-    sysHtml += '<div class="sys-row"><span>RAM</span><span class="' + (memPct > 80 ? 'cr' : 'cb') + ' fw7">' + memPct + '% (' + fmtBytes(mem.total - mem.available) + ' / ' + fmtBytes(mem.total) + ')</span></div>';
-    sysHtml += '<div class="sys-bar"><div class="sys-bar-fill" style="width:' + memPct + '%;background:' + (memPct > 80 ? 'var(--red)' : 'var(--blue)') + '"></div></div>';
-    if (DATA.sysinfo.swap && DATA.sysinfo.swap.total > 0) {
-      var swPct = Math.round(DATA.sysinfo.swap.used / DATA.sysinfo.swap.total * 100);
-      sysHtml += '<div class="sys-row"><span>Swap</span><span class="co fw7">' + swPct + '%</span></div>';
-      sysHtml += '<div class="sys-bar"><div class="sys-bar-fill" style="width:' + swPct + '%;background:var(--orange)"></div></div>';
-    }
-    document.getElementById('box-sys').innerHTML = sysHtml;
-  }
-
-  /* Bottom: WAN Chart */
-  var wChart = document.getElementById('wan-chart');
-  var maxWan = 1;
-  for (var i = 0; i < DATA.wanHistory.length; i++) {
-    var v = DATA.wanHistory[i].rx + DATA.wanHistory[i].tx;
-    if (v > maxWan) maxWan = v;
-  }
-  var chartHtml = '';
-  var startIdx = Math.max(0, DATA.wanHistory.length - 30);
-  for (var i = startIdx; i < DATA.wanHistory.length; i++) {
-    var pct = Math.max(3, ((DATA.wanHistory[i].rx + DATA.wanHistory[i].tx) / maxWan) * 100);
-    chartHtml += '<div class="wan-bar" style="height:' + pct + '%;background:rgba(0,230,118,' + (0.12 + pct / 200) + ')"></div>';
-  }
-  wChart.innerHTML = chartHtml;
-  document.getElementById('box-wan-speed').innerHTML = '<div class="wan-speed"><div><div class="ws-val cg">' + fmtRate(wr.rx) + '</div><div class="ws-lbl">Download</div></div><div><div class="ws-val co">' + fmtRate(wr.tx) + '</div><div class="ws-lbl">Upload</div></div></div>';
+/* ===== UPDATE DEVICE LIST ===== */
+function updateDeviceList() {
+  const container = document.getElementById('device-list');
+  document.getElementById('dev-count').textContent = DATA.devices?.length || 0;
+  if (!DATA.devices) return;
+  container.innerHTML = DATA.devices.map(dev => {
+    const icon = TYPE_ICONS[dev.type] || '❓';
+    const color = TYPE_COLORS[dev.type] || 'var(--muted)';
+    const ifClass = dev.iface === 'wifi24' ? 'iface-wifi24' : dev.iface === 'wifi5' ? 'iface-wifi5' : 'iface-eth';
+    const ifLabel = dev.iface === 'wifi24' ? 'WiFi 2.4G' : dev.iface === 'wifi5' ? 'WiFi 5G' : 'Ethernet';
+    const ttBadges = dev.trafficTypes.map(t => `<span class="tt-badge ${TT_CLASS[t]||'tt-other'}">${t}</span>`).join('');
+    const blockedClass = dev.blocked ? 'blocked-card' : '';
+    const signalStr = dev.signal ? ` · ${dev.signal}dBm` : '';
+    return `<div class="dev-card ${blockedClass}" data-mac="${dev.mac}">
+      <div class="dev-card-top">
+        <div class="dev-icon" style="background:${color}22;color:${color}">${icon}</div>
+        <div class="dev-info">
+          <div class="name" onclick="openEdit('${dev.mac}')">${dev.hostname}</div>
+          <div class="ip">${dev.ip} · ${dev.mac.substring(0,8)}...${signalStr}</div>
+        </div>
+        <span class="dev-iface ${ifClass}">${ifLabel}</span>
+      </div>
+      <div class="dev-card-stats">
+        <span class="up">↑ ${fmtSpeed(dev.txSpeed)}</span>
+        <span class="down">↓ ${fmtSpeed(dev.rxSpeed)}</span>
+        <span class="total">∑ ${fmtBytes(dev.txBytes + dev.rxBytes)}</span>
+        <span class="total">· ${dev.connections} conn.</span>
+      </div>
+      <div class="traffic-types">${ttBadges}</div>
+      <div class="dev-card-actions">
+        <button class="btn-sm btn-edit" onclick="openEdit('${dev.mac}')">✏️ Renommer</button>
+        <button class="btn-sm btn-block ${dev.blocked?'active':''}" onclick="toggleBlock('${dev.mac}')">${dev.blocked?'🔓 Débloquer':'🔒 Bloquer'}</button>
+      </div>
+    </div>`;
+  }).join('');
 }
-/* ===== CANVAS ANIMATION ===== */
+/* ===== CANVAS TOPOLOGY ===== */
 function initCanvas() {
-  canvas = document.getElementById('flow-canvas');
+  canvas = document.getElementById('topoCanvas');
   ctx = canvas.getContext('2d');
   resizeCanvas();
   window.addEventListener('resize', resizeCanvas);
-  /* Mouse tracking for tooltip */
-  canvas.addEventListener('mousemove', function(e) {
-    var rect = canvas.getBoundingClientRect();
-    mouseX = e.clientX - rect.left; mouseY = e.clientY - rect.top;
-    checkNodeHover();
-  });
-  canvas.addEventListener('mouseleave', function() {
-    hoveredNode = null;
-    document.getElementById('tooltip').style.display = 'none';
-  });
 }
 function resizeCanvas() {
-  var rect = canvas.parentElement.getBoundingClientRect();
-  canvas.width = rect.width; canvas.height = rect.height;
+  const area = canvas.parentElement;
+  canvas.width = area.clientWidth * (window.devicePixelRatio || 1);
+  canvas.height = area.clientHeight * (window.devicePixelRatio || 1);
+  canvas.style.width = area.clientWidth + 'px';
+  canvas.style.height = area.clientHeight + 'px';
+  W = canvas.width; H = canvas.height;
+  ctx.setTransform(window.devicePixelRatio||1, 0, 0, window.devicePixelRatio||1, 0, 0);
+  W = area.clientWidth; H = area.clientHeight;
 }
-function checkNodeHover() {
-  var tip = document.getElementById('tooltip');
-  hoveredNode = null;
-  for (var i = 0; i < nodePositions.length; i++) {
-    var n = nodePositions[i];
-    var dx = mouseX - n.x, dy = mouseY - n.y;
-    if (Math.sqrt(dx * dx + dy * dy) < n.r + 8) {
-      hoveredNode = n;
-      var html = '<div class="tt-title">' + n.label + '</div>';
-      if (n.data) {
-        for (var k in n.data) {
-          html += '<div class="tt-row"><span class="tt-label">' + k + '</span><span class="tt-val" style="color:' + n.color + '">' + n.data[k] + '</span></div>';
+
+/* Node positions */
+function getTopologyNodes() {
+  const devs = DATA.devices || [];
+  const wifiDevs = devs.filter(d => d.iface === 'wifi24' || d.iface === 'wifi5');
+  const ethDevs = devs.filter(d => d.iface === 'eth');
+
+  /* Column positions: WAN | Router | Interfaces | Devices */
+  const colWan = 80;
+  const colRouter = W * 0.22;
+  const colIface = W * 0.42;
+  const colDevStart = W * 0.62;
+
+  const nodes = {};
+  /* WAN node */
+  nodes.wan = {x: colWan, y: H/2, label: 'WAN', sublabel: DATA.wan?.['ipv4-address']?.[0]?.address || '', color: '#ff9100', icon: '🌐', r: 28};
+  /* Router node */
+  nodes.router = {x: colRouter, y: H/2, label: 'OpenWrt', sublabel: '192.168.10.1', color: '#448aff', icon: '📡', r: 30};
+  /* Interface nodes */
+  const ifaceList = [];
+  if (wifiDevs.length > 0 || true) {
+    ifaceList.push({id:'wifi24', label:'WiFi 2.4GHz', sublabel: DATA.wifiSSID || '', color:'#00e676', icon:'📶', devs: devs.filter(d=>d.iface==='wifi24')});
+  }
+  ifaceList.push({id:'wifi5', label:'WiFi 5GHz', sublabel:'', color:'#448aff', icon:'📶', devs: devs.filter(d=>d.iface==='wifi5')});
+  ifaceList.push({id:'eth', label:'Ethernet', sublabel:'br-lan', color:'#ff9100', icon:'🔌', devs: ethDevs});
+
+  const ifaceSpacing = Math.min(H / (ifaceList.length + 1), 100);
+  const ifaceStartY = H/2 - (ifaceList.length - 1) * ifaceSpacing / 2;
+  ifaceList.forEach((iface, i) => {
+    const y = ifaceStartY + i * ifaceSpacing;
+    nodes['if_'+iface.id] = {x: colIface, y, label: iface.label, sublabel: iface.sublabel + ' ('+iface.devs.length+')', color: iface.color, icon: iface.icon, r: 22, devs: iface.devs};
+  });
+
+  /* Device nodes - arranged in rows per interface */
+  let allDevNodes = [];
+  ifaceList.forEach(iface => {
+    const ifNode = nodes['if_'+iface.id];
+    const dList = iface.devs;
+    const maxPerCol = Math.floor(H / 36);
+    dList.forEach((dev, di) => {
+      const col = Math.floor(di / maxPerCol);
+      const row = di % maxPerCol;
+      const totalInCol = Math.min(dList.length - col * maxPerCol, maxPerCol);
+      const x = colDevStart + col * 130;
+      const yStart = ifNode.y - (totalInCol - 1) * 18;
+      const y = yStart + row * 36;
+      const nodeId = 'dev_' + dev.mac.replace(/:/g,'');
+      nodes[nodeId] = {x, y, label: dev.hostname.substring(0,14), sublabel:'', color: TYPE_COLORS[dev.type]||'var(--muted)', icon: TYPE_ICONS[dev.type]||'?', r:14, dev, ifaceId: iface.id};
+      allDevNodes.push(nodeId);
+    });
+  });
+  return {nodes, ifaceList, allDevNodes};
+}
+
+/* Draw a node */
+function drawNode(node, time) {
+  const {x, y, label, sublabel, color, icon, r} = node;
+  /* Glow */
+  ctx.save();
+  ctx.shadowColor = color;
+  ctx.shadowBlur = 15;
+  ctx.beginPath();
+  ctx.arc(x, y, r, 0, Math.PI*2);
+  ctx.fillStyle = color + '22';
+  ctx.fill();
+  ctx.strokeStyle = color + '88';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+  ctx.restore();
+  /* Icon */
+  ctx.font = (r > 20 ? '20px' : '14px') + ' sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(icon, x, y);
+  /* Label */
+  ctx.font = 'bold ' + (r > 20 ? '13px' : '11px') + ' sans-serif';
+  ctx.fillStyle = '#e8f0fe';
+  ctx.textAlign = 'center';
+  ctx.fillText(label, x, y + r + 14);
+  if (sublabel) {
+    ctx.font = '10px sans-serif';
+    ctx.fillStyle = '#5a6a7e';
+    ctx.fillText(sublabel, x, y + r + 26);
+  }
+}
+/* Draw connection line */
+function drawLink(x1,y1,x2,y2,color,width) {
+  ctx.beginPath();
+  ctx.moveTo(x1,y1);
+  ctx.lineTo(x2,y2);
+  ctx.strokeStyle = color + '30';
+  ctx.lineWidth = width || 1;
+  ctx.stroke();
+}
+
+/* Particle class */
+class Particle {
+  constructor(x1,y1,x2,y2,color,speed,size) {
+    this.x1=x1; this.y1=y1; this.x2=x2; this.y2=y2;
+    this.color=color; this.speed=speed||0.008; this.size=size||2.5;
+    this.t=Math.random(); this.alive=true;
+  }
+  update() {
+    this.t += this.speed;
+    if (this.t >= 1) { this.t = 0; }
+  }
+  draw(ctx) {
+    const x = this.x1 + (this.x2-this.x1)*this.t;
+    const y = this.y1 + (this.y2-this.y1)*this.t;
+    ctx.beginPath();
+    ctx.arc(x,y,this.size,0,Math.PI*2);
+    ctx.fillStyle = this.color;
+    ctx.shadowColor = this.color;
+    ctx.shadowBlur = 8;
+    ctx.fill();
+    ctx.shadowBlur = 0;
+  }
+}
+
+/* Manage particles */
+function updateParticles() {
+  const topo = getTopologyNodes();
+  const nodes = topo.nodes;
+  const needed = [];
+
+  /* WAN <-> Router */
+  const wanTraffic = DATA.devices?.reduce((s,d) => s + d.txSpeed + d.rxSpeed, 0) || 0;
+  const wanCount = Math.max(1, Math.min(8, Math.floor(wanTraffic / 50000)));
+  for (let i = 0; i < wanCount; i++) {
+    needed.push({x1:nodes.wan.x,y1:nodes.wan.y,x2:nodes.router.x,y2:nodes.router.y,color:'#ff9100',speed:0.006+Math.random()*0.008,size:2+Math.random()*1.5});
+    needed.push({x1:nodes.router.x,y1:nodes.router.y,x2:nodes.wan.x,y2:nodes.wan.y,color:'#448aff',speed:0.006+Math.random()*0.008,size:2+Math.random()*1.5});
+  }
+
+  /* Router <-> Interfaces */
+  topo.ifaceList.forEach(iface => {
+    const ifNode = nodes['if_'+iface.id];
+    if (!ifNode) return;
+    const ifTraffic = iface.devs.reduce((s,d) => s+d.txSpeed+d.rxSpeed, 0);
+    const count = Math.max(1, Math.min(5, Math.floor(ifTraffic / 30000)));
+    for (let i=0; i<count; i++) {
+      needed.push({x1:nodes.router.x,y1:nodes.router.y,x2:ifNode.x,y2:ifNode.y,color:ifNode.color,speed:0.005+Math.random()*0.008,size:2});
+      needed.push({x1:ifNode.x,y1:ifNode.y,x2:nodes.router.x,y2:nodes.router.y,color:ifNode.color+'aa',speed:0.005+Math.random()*0.008,size:1.8});
+    }
+    /* Interface <-> Devices */
+    iface.devs.forEach(dev => {
+      const dnId = 'dev_' + dev.mac.replace(/:/g,'');
+      const dn = nodes[dnId];
+      if (!dn) return;
+      const devTraffic = dev.txSpeed + dev.rxSpeed;
+      if (devTraffic > 100 || dev.connections > 0) {
+        const dCount = Math.max(1, Math.min(3, Math.floor(devTraffic / 20000)));
+        for (let i=0; i<dCount; i++) {
+          if (dev.txSpeed > 0) needed.push({x1:dn.x,y1:dn.y,x2:ifNode.x,y2:ifNode.y,color:'#00e676',speed:0.006+Math.random()*0.01,size:1.5+Math.random()});
+          if (dev.rxSpeed > 0 || dev.connections > 0) needed.push({x1:ifNode.x,y1:ifNode.y,x2:dn.x,y2:dn.y,color:'#448aff',speed:0.006+Math.random()*0.01,size:1.5+Math.random()});
         }
       }
-      tip.innerHTML = html;
-      tip.style.display = 'block';
-      tip.style.left = Math.min(mouseX + 15, canvas.width - 230) + 'px';
-      tip.style.top = (mouseY - 10) + 'px';
-      break;
+    });
+  });
+
+  /* Keep particle pool around target count */
+  const target = needed.length;
+  while (particles.length < target) {
+    const p = needed[particles.length % needed.length];
+    particles.push(new Particle(p.x1,p.y1,p.x2,p.y2,p.color,p.speed,p.size));
+  }
+  while (particles.length > target + 20) particles.pop();
+
+  /* Update positions from needed (in case topology changed) */
+  particles.forEach((p,i) => {
+    if (needed[i % needed.length]) {
+      const n = needed[i % needed.length];
+      p.x1=n.x1; p.y1=n.y1; p.x2=n.x2; p.y2=n.y2; p.color=n.color;
     }
-  }
-  if (!hoveredNode) tip.style.display = 'none';
+  });
 }
 
-/* Particle constructor */
-function Particle(path, color, speed, size) {
-  this.path = path; this.color = color; this.speed = speed;
-  this.progress = Math.random(); this.size = size || (1 + Math.random() * 2.5);
-  this.opacity = 0.3 + Math.random() * 0.6; this.trail = [];
-}
-Particle.prototype.update = function() {
-  this.progress += this.speed;
-  if (this.progress > 1) this.progress -= 1;
-  var pos = this.getPos();
-  this.trail.push({ x: pos.x, y: pos.y });
-  if (this.trail.length > 8) this.trail.shift();
-};
-Particle.prototype.getPos = function() {
-  var n = this.path.length - 1, idx = this.progress * n;
-  var i = Math.floor(idx), t = idx - i;
-  var a = this.path[Math.min(i, n)], b = this.path[Math.min(i + 1, n)];
-  return { x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t };
-};
-Particle.prototype.draw = function(c) {
-  if (this.trail.length > 1) {
-    c.beginPath(); c.moveTo(this.trail[0].x, this.trail[0].y);
-    for (var i = 1; i < this.trail.length; i++) c.lineTo(this.trail[i].x, this.trail[i].y);
-    c.strokeStyle = this.color; c.lineWidth = this.size * 0.4;
-    c.globalAlpha = this.opacity * 0.12; c.stroke();
-  }
-  var p = this.getPos();
-  c.globalAlpha = this.opacity;
-  c.beginPath(); c.arc(p.x, p.y, this.size, 0, Math.PI * 2);
-  c.fillStyle = this.color; c.fill();
-  var g = c.createRadialGradient(p.x, p.y, 0, p.x, p.y, this.size * 5);
-  g.addColorStop(0, this.color); g.addColorStop(1, 'transparent');
-  c.fillStyle = g; c.globalAlpha = this.opacity * 0.07;
-  c.beginPath(); c.arc(p.x, p.y, this.size * 5, 0, Math.PI * 2); c.fill();
-  c.globalAlpha = 1;
-};
+/* Main render loop */
+let lastParticleUpdate = 0;
+function renderFrame(time) {
+  ctx.clearRect(0,0,W,H);
 
-function makeBezier(x1, y1, x2, y2, curveAmount) {
-  var pts = [], steps = 50, ca = curveAmount || 0;
-  var cx1 = x1 + (x2 - x1) * 0.35, cy1 = y1 + ca;
-  var cx2 = x1 + (x2 - x1) * 0.65, cy2 = y2 + ca;
-  for (var i = 0; i <= steps; i++) {
-    var t = i / steps, u = 1 - t;
-    pts.push({ x: u*u*u*x1 + 3*u*u*t*cx1 + 3*u*t*t*cx2 + t*t*t*x2, y: u*u*u*y1 + 3*u*u*t*cy1 + 3*u*t*t*cy2 + t*t*t*y2 });
-  }
-  return pts;
-}
+  /* Background grid */
+  ctx.strokeStyle = 'rgba(255,255,255,0.02)';
+  ctx.lineWidth = 1;
+  for (let x=0;x<W;x+=40){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+  for (let y=0;y<H;y+=40){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
 
-/* Animated path line with pulse effect */
-function drawPathLine(path, color, width) {
-  var t = Date.now() / 1000;
-  ctx.beginPath(); ctx.moveTo(path[0].x, path[0].y);
-  for (var i = 1; i < path.length; i++) ctx.lineTo(path[i].x, path[i].y);
-  ctx.strokeStyle = color; ctx.lineWidth = width || 1; ctx.globalAlpha = 0.08; ctx.stroke();
-  /* Animated pulse on path */
-  var pulsePos = (t * 0.3) % 1;
-  var idx = Math.floor(pulsePos * (path.length - 1));
-  var p = path[Math.min(idx, path.length - 1)];
-  var g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, 20);
-  g.addColorStop(0, color); g.addColorStop(1, 'transparent');
-  ctx.fillStyle = g; ctx.globalAlpha = 0.06;
-  ctx.beginPath(); ctx.arc(p.x, p.y, 20, 0, Math.PI * 2); ctx.fill();
-  ctx.globalAlpha = 1;
-    }
-/* Draw node circle with rotating arcs and pulse rings */
-function drawNode(x, y, radius, label, sublabel, color, value, data) {
-  var t = Date.now() / 1000;
-  var isHovered = hoveredNode && Math.abs(hoveredNode.x - x) < 5 && Math.abs(hoveredNode.y - y) < 5;
-  var hoverScale = isHovered ? 1.1 : 1;
-  var r = radius * hoverScale;
+  const topo = getTopologyNodes();
+  const nodes = topo.nodes;
 
-  /* Pulse ring (expanding) */
-  var pulseR = r + 8 + (t * 20 % 30);
-  var pulseAlpha = 0.08 * (1 - (pulseR - r - 8) / 30);
-  ctx.beginPath(); ctx.arc(x, y, pulseR, 0, Math.PI * 2);
-  ctx.strokeStyle = color; ctx.lineWidth = 1; ctx.globalAlpha = Math.max(0, pulseAlpha); ctx.stroke();
+  /* Draw links */
+  /* WAN -> Router */
+  drawLink(nodes.wan.x, nodes.wan.y, nodes.router.x, nodes.router.y, '#ff9100', 2);
+  /* Router -> Interfaces */
+  topo.ifaceList.forEach(iface => {
+    const ifNode = nodes['if_'+iface.id];
+    if (ifNode) drawLink(nodes.router.x, nodes.router.y, ifNode.x, ifNode.y, ifNode.color, 1.5);
+    /* Interface -> Devices */
+    iface.devs.forEach(dev => {
+      const dnId = 'dev_' + dev.mac.replace(/:/g,'');
+      const dn = nodes[dnId];
+      if (dn && ifNode) drawLink(ifNode.x, ifNode.y, dn.x, dn.y, dn.color, 0.8);
+    });
+  });
 
-  /* Outer glow */
-  var rg = ctx.createRadialGradient(x, y, r * 0.5, x, y, r * 2.5);
-  rg.addColorStop(0, 'transparent'); rg.addColorStop(0.4, color + '06'); rg.addColorStop(1, 'transparent');
-  ctx.fillStyle = rg; ctx.globalAlpha = 1; ctx.fillRect(x - r * 2.5, y - r * 2.5, r * 5, r * 5);
-
-  /* Outer circle */
-  ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2);
-  ctx.strokeStyle = color; ctx.lineWidth = 1.5; ctx.globalAlpha = 0.15; ctx.stroke();
-
-  /* Inner fill */
-  ctx.beginPath(); ctx.arc(x, y, r - 3, 0, Math.PI * 2);
-  var grad = ctx.createRadialGradient(x, y - r * 0.3, 0, x, y, r);
-  grad.addColorStop(0, 'rgba(12,18,32,0.95)'); grad.addColorStop(1, 'rgba(6,10,20,0.98)');
-  ctx.fillStyle = grad; ctx.globalAlpha = 1; ctx.fill();
-
-  /* Primary rotating arc */
-  var arcStart = t * 1.5 % (Math.PI * 2);
-  ctx.beginPath(); ctx.arc(x, y, r, arcStart, arcStart + Math.PI * 0.55);
-  ctx.strokeStyle = color; ctx.lineWidth = 2.5; ctx.globalAlpha = 0.65; ctx.stroke();
-
-  /* Secondary arc (slower, opposite) */
-  var arcStart2 = -t * 0.7 % (Math.PI * 2);
-  ctx.beginPath(); ctx.arc(x, y, r + 5, arcStart2, arcStart2 + Math.PI * 0.3);
-  ctx.strokeStyle = color; ctx.lineWidth = 1; ctx.globalAlpha = 0.2; ctx.stroke();
-
-  /* Third arc (fast, thin) */
-  var arcStart3 = t * 2.5 % (Math.PI * 2);
-  ctx.beginPath(); ctx.arc(x, y, r - 6, arcStart3, arcStart3 + Math.PI * 0.4);
-  ctx.strokeStyle = color; ctx.lineWidth = 0.8; ctx.globalAlpha = 0.3; ctx.stroke();
-
-  ctx.globalAlpha = 1;
-  ctx.textAlign = 'center';
-  ctx.fillStyle = '#fff'; ctx.font = 'bold ' + (isHovered ? '13px' : '11px') + ' sans-serif';
-  ctx.fillText(label, x, y - (sublabel ? 4 : 2));
-  if (sublabel) { ctx.fillStyle = color; ctx.font = '8px sans-serif'; ctx.fillText(sublabel, x, y + 8); }
-  if (value) { ctx.fillStyle = '#aaa'; ctx.font = 'bold 8px sans-serif'; ctx.fillText(value, x, y + 20); }
-
-  /* Store position for hover detection */
-  nodePositions.push({ x: x, y: y, r: r, label: label + (sublabel ? ' - ' + sublabel : ''), color: color, data: data });
-}
-
-/* Draw hexagonal security node */
-function drawHexNode(x, y, size, label, sublabel, color) {
-  var t = Date.now() / 1000;
-  var rotation = t * 0.3;
-
-  ctx.save(); ctx.translate(x, y); ctx.rotate(rotation);
-  ctx.beginPath();
-  for (var i = 0; i < 6; i++) {
-    var angle = (Math.PI / 3) * i - Math.PI / 2;
-    var px = Math.cos(angle) * size, py = Math.sin(angle) * size;
-    if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
-  }
-  ctx.closePath();
-  ctx.fillStyle = 'rgba(8,14,28,0.9)'; ctx.fill();
-  ctx.strokeStyle = color; ctx.lineWidth = 1.5; ctx.globalAlpha = 0.5; ctx.stroke();
-  ctx.restore();
-
-  /* Inner static hex */
-  ctx.save(); ctx.translate(x, y);
-  ctx.beginPath();
-  for (var i = 0; i < 6; i++) {
-    var angle = (Math.PI / 3) * i - Math.PI / 2;
-    var px = Math.cos(angle) * (size - 4), py = Math.sin(angle) * (size - 4);
-    if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
-  }
-  ctx.closePath();
-  ctx.strokeStyle = color; ctx.lineWidth = 0.5; ctx.globalAlpha = 0.2; ctx.stroke();
-  ctx.restore();
-
-  ctx.globalAlpha = 1;
-  ctx.textAlign = 'center';
-  ctx.fillStyle = '#fff'; ctx.font = 'bold 11px sans-serif';
-  ctx.fillText(label, x, y + 1);
-  if (sublabel) { ctx.fillStyle = color; ctx.font = '7px sans-serif'; ctx.fillText(sublabel, x, y + 12); }
-
-  nodePositions.push({ x: x, y: y, r: size, label: label, color: color, data: null });
-}
-
-/* Draw info box */
-function drawInfoBox(x, y, w, h, label, sub, color) {
-  ctx.fillStyle = 'rgba(8,16,32,0.8)'; ctx.strokeStyle = color + '30'; ctx.lineWidth = 1;
-  var r = 5;
-  ctx.beginPath(); ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y); ctx.quadraticCurveTo(x+w,y,x+w,y+r);
-  ctx.lineTo(x+w,y+h-r); ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
-  ctx.lineTo(x+r,y+h); ctx.quadraticCurveTo(x,y+h,x,y+h-r);
-  ctx.lineTo(x,y+r); ctx.quadraticCurveTo(x,y,x+r,y); ctx.closePath();
-  ctx.globalAlpha = 1; ctx.fill(); ctx.stroke();
-  ctx.fillStyle = color; ctx.globalAlpha = 0.5; ctx.fillRect(x, y+3, 2, h-6);
-  ctx.globalAlpha = 1; ctx.fillStyle = '#ddd'; ctx.font = '9px sans-serif'; ctx.textAlign = 'left';
-  ctx.fillText(label, x+8, y+h/2+1);
-  if (sub) { ctx.fillStyle = color; ctx.font = '7px sans-serif'; ctx.fillText(sub, x+8, y+h/2+10); }
-}
-
-/* Draw section label with animated underline */
-function drawLabel(x, y, text, color) {
-  var t = Date.now() / 1000;
-  ctx.fillStyle = color; ctx.font = 'bold 8px sans-serif'; ctx.textAlign = 'left';
-  ctx.globalAlpha = 0.7; ctx.fillText(text, x, y);
-  var tw = ctx.measureText(text).width;
-  /* Animated line */
-  var lineW = tw + 12 + Math.sin(t * 2) * 6;
-  ctx.beginPath(); ctx.moveTo(x, y+3); ctx.lineTo(x + lineW, y+3);
-  ctx.strokeStyle = color; ctx.lineWidth = 1; ctx.globalAlpha = 0.12; ctx.stroke();
-  ctx.globalAlpha = 1;
-  }
-/* ===== MAIN RENDER LOOP ===== */
-function renderFrame() {
-  var W = canvas.width, H = canvas.height;
-  ctx.clearRect(0, 0, W, H);
-  nodePositions = [];
-
-  /* Grid background with subtle animation */
-  var t = Date.now() / 1000;
-  ctx.strokeStyle = 'rgba(0,230,118,0.01)'; ctx.lineWidth = 1;
-  for (var gx = 0; gx < W; gx += 40) { ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, H); ctx.stroke(); }
-  for (var gy = 0; gy < H; gy += 40) { ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(W, gy); ctx.stroke(); }
-
-  /* Radar sweep in center background */
-  var radarX = W * 0.50, radarY = H * 0.45;
-  var sweepAngle = t * 0.8 % (Math.PI * 2);
-  var radarR = Math.min(W, H) * 0.25;
-  ctx.beginPath(); ctx.moveTo(radarX, radarY);
-  ctx.arc(radarX, radarY, radarR, sweepAngle, sweepAngle + 0.4);
-  ctx.closePath();
-  var sweepGrad = ctx.createConicGradient(sweepAngle, radarX, radarY);
-  sweepGrad.addColorStop(0, 'rgba(0,230,118,0.03)');
-  sweepGrad.addColorStop(0.06, 'rgba(0,230,118,0)');
-  sweepGrad.addColorStop(1, 'rgba(0,230,118,0)');
-  ctx.fillStyle = sweepGrad; ctx.fill();
-  /* Radar circles */
-  for (var rc = 1; rc <= 3; rc++) {
-    ctx.beginPath(); ctx.arc(radarX, radarY, radarR * rc / 3, 0, Math.PI * 2);
-    ctx.strokeStyle = 'rgba(0,230,118,0.025)'; ctx.lineWidth = 1; ctx.stroke();
-  }
-  /* Radar crosshairs */
-  ctx.beginPath(); ctx.moveTo(radarX - radarR, radarY); ctx.lineTo(radarX + radarR, radarY);
-  ctx.moveTo(radarX, radarY - radarR); ctx.lineTo(radarX, radarY + radarR);
-  ctx.strokeStyle = 'rgba(0,230,118,0.015)'; ctx.lineWidth = 1; ctx.stroke();
-
-  /* Layout nodes */
-  var activeIfaces = [];
-  var ifaceNames = ['wan', 'br-lan', 'phy0-ap0', 'lan1', 'lan2', 'lan3'];
-  var ifaceLabels = { wan: 'WAN', 'br-lan': 'LAN', 'phy0-ap0': 'WiFi', lan1: 'LAN1', lan2: 'LAN2', lan3: 'LAN3' };
-  for (var i = 0; i < ifaceNames.length; i++) {
-    if (DATA.interfaces[ifaceNames[i]]) activeIfaces.push(ifaceNames[i]);
-  }
-  var ifSpacing = Math.min(52, (H - 80) / Math.max(activeIfaces.length, 1));
-  var ifStartY = (H - activeIfaces.length * ifSpacing) / 2;
-
-  var routerX = W * 0.28, routerY = H * 0.45;
-  var firewallX = W * 0.72, firewallY = H * 0.45;
-  var securityX = W * 0.50, securityY = H * 0.45;
-
-  var topDevs = DATA.leases.slice(0, Math.min(8, DATA.leases.length));
-  var devSpacing = Math.min(46, (H - 60) / Math.max(topDevs.length, 1));
-  var devStartY = (H - topDevs.length * devSpacing) / 2;
-
-  /* Build paths */
-  var pathsIF = [], pathRF_left, pathRF_right, pathsDev = [];
-
-  /* Interfaces -> Router */
-  drawLabel(16, ifStartY - 16, 'INTERFACES', '#00e676');
-  for (var i = 0; i < activeIfaces.length; i++) {
-    var nm = activeIfaces[i];
-    var rate = DATA.rates[nm] || { rx: 0, tx: 0 };
-    var yy = ifStartY + i * ifSpacing;
-    var curve = (i - activeIfaces.length / 2) * 14;
-    drawInfoBox(16, yy - 12, 110, 25, ifaceLabels[nm] || nm, fmtRate(rate.rx + rate.tx), '#00e676');
-    var p = makeBezier(126, yy, routerX - 50, routerY, curve);
-    pathsIF.push({ path: p, rate: (rate.rx || 0) + (rate.tx || 0) });
-    drawPathLine(p, '#00e676', 1.2);
-  }
-
-  /* Router -> Security -> Firewall */
-  pathRF_left = makeBezier(routerX + 50, routerY, securityX - 22, securityY, 0);
-  pathRF_right = makeBezier(securityX + 22, securityY, firewallX - 44, firewallY, 0);
-  drawPathLine(pathRF_left, '#ff9100', 1.5);
-  drawPathLine(pathRF_right, '#ff9100', 1.5);
-
-  /* Firewall -> Devices */
-  drawLabel(W - 148, devStartY - 16, 'APPAREILS', '#b388ff');
-  for (var i = 0; i < topDevs.length; i++) {
-    var yy = devStartY + i * devSpacing;
-    var curve = (i - topDevs.length / 2) * 10;
-    var devName = topDevs[i].hostname || '?';
-    if (devName.length > 14) devName = devName.substring(0, 12) + '..';
-    drawInfoBox(W - 148, yy - 10, 138, 22, devName, topDevs[i].ipaddr, '#b388ff');
-    var p = makeBezier(firewallX + 44, firewallY, W - 148, yy, curve);
-    pathsDev.push(p);
-    drawPathLine(p, '#b388ff', 0.8);
-  }
-
-  /* Extra info nodes */
-  var connNodeX = W * 0.50, connNodeY = H * 0.12;
-  var devNodeX = W * 0.50, devNodeY = H * 0.80;
-  var pathToConn = makeBezier(routerX + 30, routerY - 30, connNodeX, connNodeY + 22, -18);
-  var pathToDev = makeBezier(firewallX - 30, firewallY + 30, devNodeX, devNodeY - 22, 18);
-  drawPathLine(pathToConn, '#448aff', 0.8);
-  drawPathLine(pathToDev, '#b388ff', 0.8);
-
-  /* Regenerate particles - proportional to traffic */
-  if (frameCount % 300 === 0) {
-    particles = [];
-    var maxIfRate = 1;
-    for (var i = 0; i < pathsIF.length; i++) { if (pathsIF[i].rate > maxIfRate) maxIfRate = pathsIF[i].rate; }
-    for (var i = 0; i < pathsIF.length; i++) {
-      var numP = Math.max(2, Math.floor(3 + (pathsIF[i].rate / maxIfRate) * 8));
-      for (var j = 0; j < numP; j++) {
-        var sz = 1 + (pathsIF[i].rate / maxIfRate) * 2.5;
-        particles.push(new Particle(pathsIF[i].path, '#00e676', 0.002 + Math.random() * 0.006, sz));
-      }
-    }
-    for (var j = 0; j < 15; j++) particles.push(new Particle(pathRF_left.length ? pathRF_left : pathRF_right, '#ff9100', 0.003 + Math.random() * 0.005));
-    for (var j = 0; j < 10; j++) particles.push(new Particle(pathRF_right, '#ff9100', 0.003 + Math.random() * 0.005));
-    for (var i = 0; i < pathsDev.length; i++) {
-      for (var j = 0; j < 4; j++) particles.push(new Particle(pathsDev[i], '#b388ff', 0.002 + Math.random() * 0.005));
-    }
-    for (var j = 0; j < 4; j++) particles.push(new Particle(pathToConn, '#448aff', 0.002 + Math.random() * 0.004));
-    for (var j = 0; j < 3; j++) particles.push(new Particle(pathToDev, '#b388ff', 0.002 + Math.random() * 0.004));
-  }
-
-  /* Update and draw particles */
-  for (var i = 0; i < particles.length; i++) { particles[i].update(); particles[i].draw(ctx); }
+  /* Draw particles */
+  if (time - lastParticleUpdate > 2000) { updateParticles(); lastParticleUpdate = time; }
+  particles.forEach(p => { p.update(); p.draw(ctx); });
 
   /* Draw nodes */
-  var wanRate = DATA.rates['wan'] || { rx: 0, tx: 0 };
-  var routerData = { 'Download': fmtRate(wanRate.rx), 'Upload': fmtRate(wanRate.tx), 'Interfaces': activeIfaces.length.toString() };
-  if (DATA.sysinfo) {
-    routerData['CPU'] = (DATA.sysinfo.load[0] / 65536).toFixed(2);
-    routerData['Uptime'] = fmtUptime(DATA.sysinfo.uptime);
+  drawNode(nodes.wan, time);
+  drawNode(nodes.router, time);
+  topo.ifaceList.forEach(iface => {
+    const ifNode = nodes['if_'+iface.id];
+    if (ifNode) drawNode(ifNode, time);
+  });
+  topo.allDevNodes.forEach(id => {
+    if (nodes[id]) drawNode(nodes[id], time);
+  });
+
+  /* Radar sweep on router */
+  const angle = (time * 0.001) % (Math.PI * 2);
+  ctx.save();
+  ctx.globalAlpha = 0.08;
+  ctx.beginPath();
+  ctx.moveTo(nodes.router.x, nodes.router.y);
+  ctx.arc(nodes.router.x, nodes.router.y, 60, angle, angle + 0.8);
+  ctx.closePath();
+  ctx.fillStyle = '#448aff';
+  ctx.fill();
+  ctx.restore();
+
+  animId = requestAnimationFrame(renderFrame);
+}
+/* ===== DEVICE EDIT ===== */
+function openEdit(mac) {
+  const meta = DEVICES_META[mac] || {};
+  const dev = DATA.devices?.find(d => d.mac === mac);
+  document.getElementById('edit-mac').value = mac;
+  document.getElementById('edit-name').value = meta.name || dev?.hostname || '';
+  document.getElementById('edit-type').value = meta.type || 'auto';
+  document.getElementById('edit-modal').classList.add('active');
+}
+function closeModal() {
+  document.getElementById('edit-modal').classList.remove('active');
+}
+function saveDevice() {
+  const mac = document.getElementById('edit-mac').value;
+  const name = document.getElementById('edit-name').value.trim();
+  const type = document.getElementById('edit-type').value;
+  if (!DEVICES_META[mac]) DEVICES_META[mac] = {};
+  if (name) DEVICES_META[mac].name = name;
+  else delete DEVICES_META[mac].name;
+  DEVICES_META[mac].type = type;
+  localStorage.setItem('nf_devices', JSON.stringify(DEVICES_META));
+  closeModal();
+  updateDeviceList();
+}
+
+/* ===== BLOCK / UNBLOCK ===== */
+async function toggleBlock(mac) {
+  const dev = DATA.devices?.find(d => d.mac === mac);
+  if (!dev) return;
+  const isBlocked = DEVICES_META[mac]?.blocked;
+  if (!DEVICES_META[mac]) DEVICES_META[mac] = {};
+
+  if (isBlocked) {
+    /* Unblock: remove firewall rule */
+    DEVICES_META[mac].blocked = false;
+    /* Try to delete the rule via uci */
+    await ubus('uci','delete',{config:'firewall',type:'rule',match:{name:'nf_block_'+mac.replace(/:/g,'')}});
+    await ubus('uci','commit',{config:'firewall'});
+    await ubus('luci','setInitAction',{name:'firewall',action:'restart'});
+  } else {
+    /* Block: add firewall rule to drop all traffic from this IP */
+    DEVICES_META[mac].blocked = true;
+    await ubus('uci','add',{config:'firewall',type:'rule',name:'nf_block_'+mac.replace(/:/g,''),values:{
+      name:'nf_block_'+mac.replace(/:/g,''),
+      src:'lan', dest:'wan',
+      src_ip: dev.ip,
+      target:'DROP',
+      enabled:'1'
+    }});
+    await ubus('uci','commit',{config:'firewall'});
+    await ubus('luci','setInitAction',{name:'firewall',action:'restart'});
   }
-  drawNode(routerX, routerY, 48, 'ROUTER', 'OPENWRT', '#00e676', fmtRate(wanRate.rx), routerData);
+  localStorage.setItem('nf_devices', JSON.stringify(DEVICES_META));
+  updateDeviceList();
+}
 
-  var fwData = { 'Flux actifs': String(DATA.conntrack.length), 'TCP': String(DATA.conntrack.filter(function(c){return c.layer4==='tcp'}).length), 'UDP': String(DATA.conntrack.filter(function(c){return c.layer4==='udp'}).length) };
-  drawNode(firewallX, firewallY, 42, 'FIREWALL', DATA.conntrack.length + ' flux', '#ff9100', null, fwData);
-
-  /* Hexagonal security node */
-  drawHexNode(securityX, securityY, 20, '✓', 'SÉCURÉ', '#00e676');
-
-  var connData = { 'TCP': String(DATA.conntrack.filter(function(c){return c.layer4==='tcp'}).length), 'UDP': String(DATA.conntrack.filter(function(c){return c.layer4==='udp'}).length) };
-  drawNode(connNodeX, connNodeY, 28, String(DATA.conntrack.length), 'CONNEXIONS', '#448aff', null, connData);
-  drawNode(devNodeX, devNodeY, 26, String(DATA.leases.length), 'APPAREILS', '#b388ff', null, { 'DHCP': String(DATA.leases.length) });
-
-  frameCount++;
-  requestAnimationFrame(renderFrame);
+/* ===== PANEL TOGGLE ===== */
+function togglePanel() {
+  const list = document.getElementById('device-list');
+  const icon = document.getElementById('panel-toggle');
+  if (list.style.display === 'none') {
+    list.style.display = 'grid';
+    icon.classList.remove('collapsed');
+  } else {
+    list.style.display = 'none';
+    icon.classList.add('collapsed');
+  }
 }
 
 /* ===== INIT ===== */
-function initApp() {
+async function initDashboard() {
   initCanvas();
-  fetchAllData();
-  setInterval(fetchAllData, 3000);
-  renderFrame();
+  await fetchData();
+  updateHeader();
+  updateDeviceList();
+  requestAnimationFrame(renderFrame);
+  /* Refresh data every 5 seconds */
+  setInterval(async () => {
+    await fetchData();
+    updateHeader();
+    updateDeviceList();
+  }, 5000);
 }
+
+/* Close modal on backdrop click */
+document.getElementById('edit-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
 </script>
 </body>
 </html>
