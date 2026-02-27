@@ -11,7 +11,7 @@
 body{background:var(--bg);color:var(--text-bright);font-family:'Segoe UI',system-ui,-apple-system,sans-serif;overflow:hidden;height:100vh;}
 #loginOverlay{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:9999;flex-direction:column;gap:16px;}
 #loginOverlay h1{font-size:28px;background:linear-gradient(135deg,var(--accent1),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:8px;}
-#loginOverlay .ver{font-size:11px;color:var(--text-muted);margin-top:-8px;}
+#loginOverlay .ver{font-size:11px;color:var(--text-muted);marghin-top:-8px;}
 #loginOverlay input{padding:10px 16px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text-bright);width:260px;font-size:14px;}
 #loginOverlay button{padding:10px 32px;border-radius:8px;border:none;background:linear-gradient(135deg,var(--accent1),var(--accent2));color:#fff;cursor:pointer;font-size:14px;font-weight:600;}
 #loginOverlay .err{color:var(--danger);font-size:12px;min-height:18px;}
@@ -56,7 +56,7 @@ header .logo{font-weight:700;font-size:16px;background:linear-gradient(135deg,va
 .dev-card .card-stats{display:flex;gap:10px;font-size:10px;color:var(--text-muted);margin-bottom:6px;}
 .dev-card .card-stats span{display:flex;align-items:center;gap:3px;}
 .dev-card .card-stats .up{color:var(--accent3);}
-.dev-card .card-stats .dn{color:var(--accent1);}
+.dev-card .card-stats .dn{color:var(--accent1);}.card-stats .up{color:var(--accent3);}.card-stats .dn.active,.card-stats .up.active{font-weight:700;text-shadow:0 0 6px currentColor;}@keyframes blink-arrow{0%,100%{opacity:1;}50%{opacity:.4;}}.card-stats .dn.active,.card-stats .up.active{animation:blink-arrow .8s ease-in-out infinite;}
 .dev-card .spark-row{height:24px;position:relative;}
 .dev-card .spark-row canvas{width:100%;height:100%;}
 .dev-card .port-badges{display:flex;flex-wrap:wrap;gap:3px;margin-top:4px;}
@@ -110,7 +110,7 @@ header .logo{font-weight:700;font-size:16px;background:linear-gradient(135deg,va
 <body>
 <div id="loginOverlay">
 <h1>Netflow by Ealison</h1>
-<div class="ver">v5.3.1</div>
+<div class="ver">v5.3.2</div>
 <input type="password" id="loginPass" placeholder="Router password" autofocus>
 <button onclick="doLogin()">Connect</button>
 <div class="err" id="loginErr"></div>
@@ -437,7 +437,7 @@ function renderDevices(){
   ifNames.forEach(ifName=>{
     const icon=ifName.includes('GHz')||ifName.includes('WiFi')?'\u{1F4F6}':'\u{1F50C}';
     html+='<div class="iface-section"><span class="iface-icon">'+icon+'</span>'+ifName+' ('+groups[ifName].length+')</div>';
-    groups[ifName].sort((a,b)=>(b.online?1:0)-(a.online?1:0)||(b.bw_down-a.bw_down));
+    groups[ifName].sort((a,b)=>(a.hostname||a.ip).localeCompare(b.hostname||b.ip));
     groups[ifName].forEach(d=>{
       const name=customNames[d.mac]||d.hostname||d.ip;
       const dtype=d.type||'unknown';
@@ -446,7 +446,7 @@ function renderDevices(){
       html+='<div class="dev-card'+(d.online?'':' offline')+'" onclick="showModal(\''+d.ip+'\')">';
       html+='<span class="type-badge">'+dtype+'</span>';
       html+='<div class="card-top"><span class="dev-icon">'+dicon+'</span><div><div class="dev-name">'+name+'</div><div class="dev-ip">'+d.ip+' &middot; '+d.mac+'</div></div></div>';
-      html+='<div class="card-stats"><span class="dn">\u2B07 '+fmtSpeed(d.bw_down)+'</span><span class="up">\u2B06 '+fmtSpeed(d.bw_up)+'</span><span>\u{1F517} '+d.conns.length+'</span>';
+      html+='<div class="card-stats"><span class="dn'+(d.bw_down>0?' active':'')+'">▼ '+fmtSpeed(d.bw_down)+'</span><span class="up'+(d.bw_up>0?' active':'')+'">▲ '+fmtSpeed(d.bw_up)+'</span><span>\u{1F517} '+d.conns.length+'</span>';
       if(d.signal)html+='<span>\u{1F4F6} '+d.signal+'dBm</span>';
       html+='</div>';
       html+='<div class="spark-row"><canvas id="spark_'+d.ip.replace(/\./g,'_')+'" height="24"></canvas></div>';
