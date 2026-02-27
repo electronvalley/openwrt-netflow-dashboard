@@ -110,7 +110,7 @@ header .logo{font-weight:700;font-size:16px;background:linear-gradient(135deg,va
 <body>
 <div id="loginOverlay">
 <h1>Netflow by Ealison</h1>
-<div class="ver">v5.3.2</div>
+<div class="ver">v5.3.3</div>
 <input type="password" id="loginPass" placeholder="Router password" autofocus>
 <button onclick="doLogin()">Connect</button>
 <div class="err" id="loginErr"></div>
@@ -223,7 +223,7 @@ const OUI_HINTS={
 };
 const DEV_ICONS={phone:'\u{1F4F1}',tablet:'\u{1F4F1}',laptop:'\u{1F4BB}',desktop:'\u{1F5A5}',tv:'\u{1F4FA}',speaker:'\u{1F50A}',printer:'\u{1F5A8}',camera:'\u{1F4F7}',iot:'\u{1F4A1}',gaming:'\u{1F3AE}',server:'\u{1F5A5}',nas:'\u{1F4BE}',router:'\u{1F310}',watch:'\u{231A}',unknown:'\u{1F4BB}'};
 function guessDeviceType(d){
-  if(customTypes[d.mac])return customTypes[d.mac];
+  if(customTypes[d.mac||d.ip])return customTypes[d.mac||d.ip];
   const mac=d.mac.toUpperCase();const hn=(d.hostname||'').toLowerCase();const ports=d.ports||[];
   for(const[brand,prefixes]of Object.entries(OUI_HINTS)){
     if(prefixes.some(p=>mac.startsWith(p))){
@@ -406,10 +406,10 @@ async function fetchData(){
 }
 function checkAlerts(){
   devices.forEach(d=>{
-    if(d.conns.length>100)addAlert('warn','High Connections',(customNames[d.mac]||d.hostname||d.ip)+': '+d.conns.length+' conns');
-    if(d.bw_down>5e6)addAlert('warn','High Bandwidth',(customNames[d.mac]||d.hostname||d.ip)+' DL '+fmtSpeed(d.bw_down));
-    if(d.bw_up>2e6)addAlert('warn','High Upload',(customNames[d.mac]||d.hostname||d.ip)+' UL '+fmtSpeed(d.bw_up));
-    d.ports.forEach(p=>{if(SUSPICIOUS_PORTS.includes(p))addAlert('critical','Suspicious Port','Port '+p+' ('+(PORT_NAMES[p]||'?')+') on '+(customNames[d.mac]||d.hostname||d.ip));});
+    if(d.conns.length>100)addAlert('warn','High Connections',(customNames[d.mac||d.ip]||d.hostname||d.ip)+': '+d.conns.length+' conns');
+    if(d.bw_down>5e6)addAlert('warn','High Bandwidth',(customNames[d.mac||d.ip]||d.hostname||d.ip)+' DL '+fmtSpeed(d.bw_down));
+    if(d.bw_up>2e6)addAlert('warn','High Upload',(customNames[d.mac||d.ip]||d.hostname||d.ip)+' UL '+fmtSpeed(d.bw_up));
+    d.ports.forEach(p=>{if(SUSPICIOUS_PORTS.includes(p))addAlert('critical','Suspicious Port','Port '+p+' ('+(PORT_NAMES[p]||'?')+') on '+(customNames[d.mac||d.ip]||d.hostname||d.ip));});
   });
 }
 function addAlert(level,title,msg){
@@ -426,7 +426,7 @@ function renderDevices(){
   const grid=document.getElementById('deviceGrid');
   const search=(document.getElementById('searchBox').value||'').toLowerCase();
   let devs=[...devices];
-  if(search)devs=devs.filter(d=>(d.hostname+d.ip+d.mac+(customNames[d.mac]||'')).toLowerCase().includes(search));
+  if(search)devs=devs.filter(d=>(d.hostname+d.ip+d.mac+(customNames[d.mac||d.ip]||'')).toLowerCase().includes(search));
   const groups={};
   devs.forEach(d=>{const g=d.iface||'Unknown';if(!groups[g])groups[g]=[];groups[g].push(d);});
   const ifNames=Object.keys(groups).sort((a,b)=>{
@@ -439,7 +439,7 @@ function renderDevices(){
     html+='<div class="iface-section"><span class="iface-icon">'+icon+'</span>'+ifName+' ('+groups[ifName].length+')</div>';
     groups[ifName].sort((a,b)=>(a.hostname||a.ip).localeCompare(b.hostname||b.ip));
     groups[ifName].forEach(d=>{
-      const name=customNames[d.mac]||d.hostname||d.ip;
+      const name=customNames[d.mac||d.ip]||d.hostname||d.ip;
       const dtype=d.type||'unknown';
       const dicon=DEV_ICONS[dtype]||DEV_ICONS.unknown;
       const topPorts=d.ports.slice(0,6).map(p=>'<span class="port-badge">'+(PORT_NAMES[p]||p)+'</span>').join('');
@@ -515,7 +515,7 @@ function drawTopology(){
       ctx.fillStyle=col;ctx.beginPath();ctx.arc(devX,dy,3,0,Math.PI*2);ctx.fill();
       ctx.fillStyle=isOn?getColor('--text-bright'):getColor('--text-muted');ctx.font='9px system-ui';ctx.textAlign='left';
       const dtype=guessDeviceType(d);const icon=DEV_ICONS[dtype]||DEV_ICONS.unknown;
-      ctx.fillText(icon+' '+(customNames[d.mac]||d.hostname||d.ip).substring(0,20),devX+8,dy+3);
+      ctx.fillText(icon+' '+(customNames[d.mac||d.ip]||d.hostname||d.ip).substring(0,20),devX+8,dy+3);
       const bw=d.bw_down+d.bw_up;const lw=Math.max(0.5,Math.min(3,bw/50000));
       drawLink(ifaceX,y,devX,dy,col,lw);
       if(isOn&&Math.random()<0.08){
@@ -534,7 +534,7 @@ function drawTopology(){
 function drawLink(x1,y1,x2,y2,color,w){const ctx=document.getElementById('topoCanvas').getContext('2d');ctx.strokeStyle=color;ctx.lineWidth=w;ctx.globalAlpha=0.25;ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();ctx.globalAlpha=1;}
 function showModal(ip){
   const d=devices.find(x=>x.ip===ip);if(!d)return;modalDev=d;
-  const name=customNames[d.mac]||d.hostname||d.ip;const dtype=d.type||'unknown';const icon=DEV_ICONS[dtype]||DEV_ICONS.unknown;
+  const name=customNames[d.mac||d.ip]||d.hostname||d.ip;const dtype=d.type||'unknown';const icon=DEV_ICONS[dtype]||DEV_ICONS.unknown;
   document.getElementById('mIcon').textContent=icon;
   document.getElementById('mTitle').textContent=name;
   let info='<h3>Device Information</h3>';
@@ -578,10 +578,10 @@ function showModalTab(tab){
     document.getElementById('mActions').style.display='';document.querySelector('.modal-tab:nth-child(4)').classList.add('active');
     let h='<h3>Customize</h3>';
     h+='<div style="margin-bottom:12px"><label style="font-size:11px;color:var(--text-muted)">Display Name</label>';
-    h+='<input class="m-input" id="mNameInput" value="'+(customNames[d.mac]||d.hostname||'')+'" placeholder="Custom name"></div>';
+    h+='<input class="m-input" id="mNameInput" value="'+(customNames[d.mac||d.ip]||d.hostname||'')+'" placeholder="Custom name"></div>';
     h+='<div style="margin-bottom:12px"><label style="font-size:11px;color:var(--text-muted)">Device Type</label>';
     h+='<select class="m-select" id="mTypeSelect">';
-    Object.keys(DEV_ICONS).forEach(t=>{h+='<option value="'+t+'"'+(t===(customTypes[d.mac]||d.type)?' selected':'')+'>'+DEV_ICONS[t]+' '+t+'</option>';});
+    Object.keys(DEV_ICONS).forEach(t=>{h+='<option value="'+t+'"'+(t===(customTypes[d.mac||d.ip]||d.type)?' selected':'')+'>'+DEV_ICONS[t]+' '+t+'</option>';});
     h+='</select></div>';
     h+='<button class="m-btn primary" onclick="saveCustom()">Save</button>';
     h+='<h3 style="margin-top:16px">Actions</h3>';
@@ -592,8 +592,8 @@ function showModalTab(tab){
 function saveCustom(){
   if(!modalDev)return;
   const n=document.getElementById('mNameInput').value.trim();const t=document.getElementById('mTypeSelect').value;
-  if(n)customNames[modalDev.mac]=n;else delete customNames[modalDev.mac];
-  if(t&&t!=='unknown')customTypes[modalDev.mac]=t;else delete customTypes[modalDev.mac];
+  if(n)customNames[modalDev.mac||modalDev.ip]=n;else delete customNames[modalDev.mac||modalDev.ip];
+  if(t&&t!=='unknown')customTypes[modalDev.mac||modalDev.ip]=t;else delete customTypes[modalDev.mac||modalDev.ip];
   try{localStorage.setItem('nf_names',JSON.stringify(customNames));localStorage.setItem('nf_types',JSON.stringify(customTypes));}catch(e){}
   renderDevices();document.getElementById('modalOverlay').classList.remove('active');
 }
