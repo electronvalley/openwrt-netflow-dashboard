@@ -110,7 +110,7 @@ header .logo{font-weight:700;font-size:16px;background:linear-gradient(135deg,va
 <body>
 <div id="loginOverlay">
 <h1>Netflow by Ealison</h1>
-<div class="ver">v5.3</div>
+<div class="ver">v5.3.1</div>
 <input type="password" id="loginPass" placeholder="Router password" autofocus>
 <button onclick="doLogin()">Connect</button>
 <div class="err" id="loginErr"></div>
@@ -221,45 +221,44 @@ const OUI_HINTS={
   'nest':['18:B4:30','64:16:66'],
   'synology':['00:11:32']
 };
-const DEV_ICONS={phone:'📱',tablet:'📱',laptop:'💻',desktop:'🖥',tv:'📺',speaker:'🔊',printer:'🖨',camera:'📷',iot:'💡',gaming:'🎮',server:'🖥',nas:'💾',router:'🌐',watch:'⌚',unknown:'💻'};
+const DEV_ICONS={phone:'\u{1F4F1}',tablet:'\u{1F4F1}',laptop:'\u{1F4BB}',desktop:'\u{1F5A5}',tv:'\u{1F4FA}',speaker:'\u{1F50A}',printer:'\u{1F5A8}',camera:'\u{1F4F7}',iot:'\u{1F4A1}',gaming:'\u{1F3AE}',server:'\u{1F5A5}',nas:'\u{1F4BE}',router:'\u{1F310}',watch:'\u{231A}',unknown:'\u{1F4BB}'};
 function guessDeviceType(d){
   if(customTypes[d.mac])return customTypes[d.mac];
   const mac=d.mac.toUpperCase();const hn=(d.hostname||'').toLowerCase();const ports=d.ports||[];
   for(const[brand,prefixes]of Object.entries(OUI_HINTS)){
     if(prefixes.some(p=>mac.startsWith(p))){
-      if(brand==='apple'){if(hn.includes('iphone'))return'phone';if(hn.includes('ipad'))return'tablet';if(hn.includes('macbook')||hn.includes('mbp'))return'laptop';if(hn.includes('imac'))return'desktop';if(hn.includes('appletv')||hn.includes('apple-tv'))return'tv';if(hn.includes('homepod'))return'speaker';if(hn.includes('watch'))return'watch';return'phone';}
-      if(brand==='samsung'){if(hn.includes('tv')||hn.includes('samsung-tv'))return'tv';if(hn.includes('galaxy')||hn.includes('sm-'))return'phone';if(hn.includes('tab'))return'tablet';return'phone';}
-      if(brand==='amazon'){if(hn.includes('fire')||hn.includes('kindle'))return'tablet';if(hn.includes('echo'))return'speaker';if(hn.includes('ring'))return'camera';return'iot';}
-      if(brand==='google'){if(hn.includes('home')||hn.includes('nest'))return'speaker';if(hn.includes('chromecast'))return'tv';if(hn.includes('pixel'))return'phone';return'iot';}
-      if(brand==='roku')return'tv';if(brand==='sonos')return'speaker';if(brand==='lg'||brand==='sony')return(hn.includes('tv')||ports.includes(9000))?'tv':'unknown';
-      if(brand==='microsoft'||brand==='intel')return(hn.includes('xbox'))?'gaming':'desktop';
+      if(brand==='apple'){if(hn.includes('iphone'))return'phone';if(hn.includes('ipad'))return'tablet';if(hn.includes('macbook'))return'laptop';if(hn.includes('imac'))return'desktop';if(hn.includes('appletv'))return'tv';if(hn.includes('homepod'))return'speaker';return'phone';}
+      if(brand==='samsung'){if(hn.includes('tv'))return'tv';if(hn.includes('galaxy')||hn.includes('sm-'))return'phone';return'phone';}
+      if(brand==='amazon'){if(hn.includes('echo'))return'speaker';if(hn.includes('fire'))return'tablet';return'iot';}
+      if(brand==='google'){if(hn.includes('home')||hn.includes('nest'))return'speaker';if(hn.includes('chromecast'))return'tv';return'iot';}
+      if(brand==='roku')return'tv';if(brand==='sonos')return'speaker';
+      if(brand==='lg'||brand==='sony')return hn.includes('tv')?'tv':'unknown';
+      if(brand==='microsoft'||brand==='intel')return hn.includes('xbox')?'gaming':'desktop';
       if(brand==='hp')return ports.includes(9100)?'printer':'desktop';
       if(brand==='raspberry'||brand==='synology')return'server';
       if(brand==='espressif'||brand==='tuya')return'iot';
       if(brand==='ring')return'camera';if(brand==='nest')return'iot';
-      if(brand==='xiaomi'){if(hn.includes('redmi')||hn.includes('poco')||hn.includes('mi-'))return'phone';return'iot';}
-      if(brand==='huawei'){if(hn.includes('mate')||hn.includes('p30')||hn.includes('p40')||hn.includes('nova'))return'phone';return'phone';}
+      if(brand==='xiaomi')return hn.includes('redmi')||hn.includes('poco')?'phone':'iot';
+      if(brand==='huawei')return'phone';
       if(brand==='tp-link')return'iot';if(brand==='realtek')return'desktop';
     }
   }
-  if(hn.includes('iphone')||hn.includes('android')||hn.includes('galaxy')||hn.includes('pixel')||hn.includes('huawei')||hn.includes('oneplus')||hn.includes('redmi'))return'phone';
+  if(hn.includes('iphone')||hn.includes('android')||hn.includes('galaxy')||hn.includes('pixel')||hn.includes('huawei'))return'phone';
   if(hn.includes('ipad')||hn.includes('tab'))return'tablet';
-  if(hn.includes('laptop')||hn.includes('macbook')||hn.includes('thinkpad')||hn.includes('notebook'))return'laptop';
-  if(hn.includes('desktop')||hn.includes('pc')||hn.includes('workstation'))return'desktop';
-  if(hn.includes('tv')||hn.includes('roku')||hn.includes('firestick')||hn.includes('chromecast'))return'tv';
+  if(hn.includes('laptop')||hn.includes('macbook'))return'laptop';
+  if(hn.includes('desktop')||hn.includes('pc'))return'desktop';
+  if(hn.includes('tv')||hn.includes('roku')||hn.includes('chromecast'))return'tv';
   if(hn.includes('printer')||hn.includes('print')||ports.includes(9100))return'printer';
-  if(hn.includes('camera')||hn.includes('cam')||hn.includes('ipcam'))return'camera';
-  if(hn.includes('echo')||hn.includes('homepod')||hn.includes('sonos')||hn.includes('speaker'))return'speaker';
-  if(hn.includes('esp')||hn.includes('tasmota')||hn.includes('shelly')||hn.includes('tuya')||hn.includes('smart'))return'iot';
-  if(hn.includes('xbox')||hn.includes('playstation')||hn.includes('switch')||hn.includes('ps5')||hn.includes('ps4'))return'gaming';
-  if(hn.includes('nas')||hn.includes('synology')||hn.includes('qnap'))return'nas';
+  if(hn.includes('camera')||hn.includes('cam'))return'camera';
+  if(hn.includes('echo')||hn.includes('homepod')||hn.includes('sonos'))return'speaker';
+  if(hn.includes('esp')||hn.includes('tasmota')||hn.includes('shelly')||hn.includes('tuya'))return'iot';
+  if(hn.includes('xbox')||hn.includes('playstation')||hn.includes('ps5'))return'gaming';
+  if(hn.includes('nas')||hn.includes('synology'))return'nas';
   if(hn.includes('pi')||hn.includes('rasp')||hn.includes('server'))return'server';
-  if(ports.includes(9100)||ports.includes(515))return'printer';
-  if(ports.includes(8080)||ports.includes(80)&&ports.includes(443))return'server';
   return'unknown';
 }
 function getColor(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim();}
-function fmtB(b){if(b>=1e9)return(b/1e9).toFixed(1)+'G';if(b>=1e6)return(b/1e6).toFixed(1)+'M';if(b>=1e3)return(b/1e3).toFixed(1)+'K';return b+'B';}
+function fmtB(b){if(b>=1e9)return(b/1e9).toFixed(1)+'G';if(b>=1e6)return(b/1e6).toFixed(1)+'M';if(b>=1e3)return(b/1e3).toFixed(1)+'K';return Math.round(b)+'B';}
 function fmtSpeed(b){return fmtB(b)+'/s';}
 async function doLogin(){
   const pw=document.getElementById('loginPass').value;
@@ -297,25 +296,23 @@ function toggleDns(){
 function switchTab(tab){
   activeTab=tab;
   document.querySelectorAll('.panel-tab').forEach(t=>t.classList.remove('active'));
-  event.target.classList.add('active');
+  if(event&&event.target)event.target.classList.add('active');
   if(tab==='devices'){document.getElementById('deviceGrid').style.display='';document.getElementById('dnsPanel').classList.remove('active');}
   else{document.getElementById('deviceGrid').style.display='none';document.getElementById('dnsPanel').classList.add('active');fetchDnsLog();}
 }
 document.addEventListener('click',e=>{if(!e.target.closest('.dropdown'))document.querySelectorAll('.dropdown-content.show').forEach(d=>d.classList.remove('show'));});
 async function fetchData(){
-  const [net,board,dhcp,ct,winfo]=await Promise.all([
+  const [net,dhcpR,ctR,wifiDevs]=await Promise.all([
     ubus('network.interface','dump'),
-    ubus('system','board'),
-    ubus('dhcp','ipv4leases'),
+    ubus('luci-rpc','getDHCPLeases'),
     ubus('luci','getConntrackList'),
-    ubus('iwinfo','info')
+    ubus('luci-rpc','getWirelessDevices')
   ]);
   // WAN info
   const wIf=(net.interface||[]).find(i=>i.interface==='wan')||{};
   const wUp=wIf.up||false;
   const wIP=(wIf['ipv4-address']&&wIf['ipv4-address'][0])?wIf['ipv4-address'][0].address:'';
   const wDev=wIf.l3_device||wIf.device||'wan';
-  // WAN traffic via dev stats
   let wRx=0,wTx=0;
   try{
     const devStat=await ubus('network.device','status',{name:wDev});
@@ -325,44 +322,53 @@ async function fetchData(){
   let wSpDown=0,wSpUp=0;
   if(wanPrev&&wanPrev.t){
     const dt=(now-wanPrev.t)/1000;
-    if(dt>0&&dt<30){
-      wSpDown=Math.max(0,(wRx-wanPrev.rx)/dt);
-      wSpUp=Math.max(0,(wTx-wanPrev.tx)/dt);
-      if(wRx<wanPrev.rx)wSpDown=0;
-      if(wTx<wanPrev.tx)wSpUp=0;
-    }
+    if(dt>0&&dt<30){wSpDown=Math.max(0,(wRx-wanPrev.rx)/dt);wSpUp=Math.max(0,(wTx-wanPrev.tx)/dt);if(wRx<wanPrev.rx)wSpDown=0;if(wTx<wanPrev.tx)wSpUp=0;}
   }
   wanPrev={rx:wRx,tx:wTx,t:now};
   wanInfo={up:wUp,ip:wIP,rx:wRx,tx:wTx,speed_down:wSpDown,speed_up:wSpUp};
-  // Update header
   document.getElementById('wanDot').className='dot'+(wUp?'':' down');
   document.getElementById('wanLabel').textContent='WAN '+(wIP||'--');
   document.getElementById('statDown').textContent=fmtSpeed(wSpDown);
   document.getElementById('statUp').textContent=fmtSpeed(wSpUp);
-  // DHCP leases map
+  // DHCP leases - from luci-rpc getDHCPLeases
   const leaseMap={};
-  if(dhcp&&dhcp.dhcp_leases){dhcp.dhcp_leases.forEach(l=>{leaseMap[l.ipaddr]={mac:(l.macaddr||'').toUpperCase(),hostname:l.hostname||''};});}
-  // Conntrack
+  const leases=dhcpR.dhcp_leases||[];
+  leases.forEach(l=>{leaseMap[l.ipaddr]={mac:(l.macaddr||'').toUpperCase(),hostname:l.hostname||''};});
+  // Conntrack - result is nested in .result property
   const connMap={};const portMap={};
-  if(ct&&ct.length){
-    ct.forEach(c=>{
-      const src=c.src;const dst=c.dst;const dp=c.dport?parseInt(c.dport):0;
-      [src,dst].forEach(ip=>{if(ip&&ip.startsWith('192.168.')){if(!connMap[ip])connMap[ip]=[];connMap[ip].push(c);if(dp&&!portMap[ip])portMap[ip]=new Set();if(dp&&portMap[ip])portMap[ip].add(dp);}});
+  const ctList=(ctR&&ctR.result)?ctR.result:(Array.isArray(ctR)?ctR:[]);
+  ctList.forEach(c=>{
+    const src=c.src;const dst=c.dst;const dp=c.dport?parseInt(c.dport):0;const sp=c.sport?parseInt(c.sport):0;
+    [src,dst].forEach(ip=>{
+      if(ip&&ip.startsWith('192.168.')){
+        if(!connMap[ip])connMap[ip]=[];connMap[ip].push(c);
+        if(!portMap[ip])portMap[ip]=new Set();
+        if(dp>0)portMap[ip].add(dp);
+      }
     });
-        }
-  // WiFi associations
+  });
+  // WiFi associations - get from luci-rpc getWirelessDevices + iwinfo assoclist
   const wifiClients={};
-  if(winfo){
-    for(const[ifname,info]of Object.entries(winfo)){
-      if(info&&info.assoclist){
-        const ssid=info.ssid||ifname;
-        const freq=info.frequency;
-        const band=freq>4900?'5GHz':'2.4GHz';
-        const label=ssid+' ('+band+')';
-        info.assoclist.forEach(c=>{
-          const mac=(c.mac||'').toUpperCase();
-          wifiClients[mac]={iface:label,isWifi:true,signal:c.signal,noise:c.noise,rx_rate:c.rx_rate||0,tx_rate:c.tx_rate||0,rx_bytes:c.rx_bytes||0,tx_bytes:c.tx_bytes||0};
-        });
+  if(wifiDevs){
+    for(const[radioName,radioInfo]of Object.entries(wifiDevs)){
+      if(radioInfo&&radioInfo.interfaces){
+        for(const iface of radioInfo.interfaces){
+          const ifname=iface.ifname;
+          if(!ifname)continue;
+          const ssid=iface.config?.ssid||iface.iwinfo?.ssid||ifname;
+          const freq=iface.iwinfo?.frequency||iface.config?.channel||0;
+          const band=freq>4900?'5GHz':'2.4GHz';
+          const label=ssid+' ('+band+')';
+          try{
+            const assocData=await ubus('iwinfo','assoclist',{device:ifname});
+            const clients=assocData.results||[];
+            clients.forEach(c=>{
+              const mac=(c.mac||'').toUpperCase();
+              wifiClients[mac]={iface:label,isWifi:true,signal:c.signal||0,noise:c.noise||0,
+                rx_bytes:(c.rx&&c.rx.bytes)||0,tx_bytes:(c.tx&&c.tx.bytes)||0};
+            });
+          }catch(e){}
+        }
       }
     }
   }
@@ -375,28 +381,16 @@ async function fetchData(){
     const hostname=lease.hostname||'';
     const conns=connMap[ip]||[];
     const ports=portMap[ip]?Array.from(portMap[ip]):[];
-    // WiFi or Ethernet
     const wc=wifiClients[mac];
     const iface=wc?wc.iface:'Ethernet (br-lan)';
     const isWifi=wc?true:false;
-    // Traffic bytes from wifi assoclist (for wifi devices) or conntrack estimation
     let rxB=0,txB=0;
     if(wc){rxB=wc.rx_bytes;txB=wc.tx_bytes;}
     else{conns.forEach(c=>{rxB+=(parseInt(c.bytes)||0);txB+=(parseInt(c.reply_bytes)||0);});}
-    // Bandwidth calculation
     let bwDown=0,bwUp=0;
     const prev=prevDevData[ip];
-    if(prev&&prev.t){
-      const dt=(now-prev.t)/1000;
-      if(dt>0&&dt<30){
-        bwDown=Math.max(0,(rxB-prev.rx)/dt);
-        bwUp=Math.max(0,(txB-prev.tx)/dt);
-        if(rxB<prev.rx)bwDown=0;
-        if(txB<prev.tx)bwUp=0;
-      }
-    }
+    if(prev&&prev.t){const dt=(now-prev.t)/1000;if(dt>0&&dt<30){bwDown=Math.max(0,(rxB-prev.rx)/dt);bwUp=Math.max(0,(txB-prev.tx)/dt);if(rxB<prev.rx)bwDown=0;if(txB<prev.tx)bwUp=0;}}
     prevDevData[ip]={rx:rxB,tx:txB,t:now};
-    // Spark history
     if(!sparkHistory[ip])sparkHistory[ip]=[];
     sparkHistory[ip].push({d:bwDown,u:bwUp});
     if(sparkHistory[ip].length>30)sparkHistory[ip].shift();
@@ -406,39 +400,26 @@ async function fetchData(){
     newDevices.push(d);
   });
   devices=newDevices;
-  const onlineCount=devices.filter(d=>d.online).length;
-  const totalConns=Object.values(connMap).reduce((a,c)=>a+c.length,0);
-  document.getElementById('statDevices').textContent=onlineCount;
-  document.getElementById('statConns').textContent=totalConns;
-  checkAlerts();
-  renderDevices();
-  drawTopology();
+  document.getElementById('statDevices').textContent=devices.filter(d=>d.online).length||devices.length;
+  document.getElementById('statConns').textContent=ctList.length;
+  checkAlerts();renderDevices();drawTopology();
 }
 function checkAlerts(){
   devices.forEach(d=>{
-    if(d.conns.length>100)addAlert('warn','High Connections','Device '+(customNames[d.mac]||d.hostname||d.ip)+' has '+d.conns.length+' active connections');
-    if(d.bw_down>5e6)addAlert('warn','High Bandwidth','Device '+(customNames[d.mac]||d.hostname||d.ip)+' downloading at '+fmtSpeed(d.bw_down));
-    if(d.bw_up>2e6)addAlert('warn','High Upload','Device '+(customNames[d.mac]||d.hostname||d.ip)+' uploading at '+fmtSpeed(d.bw_up));
-    d.ports.forEach(p=>{
-      if(SUSPICIOUS_PORTS.includes(p)){
-        addAlert('critical','Suspicious Port','Port '+p+' ('+( PORT_NAMES[p]||'unknown')+') detected on '+(customNames[d.mac]||d.hostname||d.ip));
-      }
-    });
+    if(d.conns.length>100)addAlert('warn','High Connections',(customNames[d.mac]||d.hostname||d.ip)+': '+d.conns.length+' conns');
+    if(d.bw_down>5e6)addAlert('warn','High Bandwidth',(customNames[d.mac]||d.hostname||d.ip)+' DL '+fmtSpeed(d.bw_down));
+    if(d.bw_up>2e6)addAlert('warn','High Upload',(customNames[d.mac]||d.hostname||d.ip)+' UL '+fmtSpeed(d.bw_up));
+    d.ports.forEach(p=>{if(SUSPICIOUS_PORTS.includes(p))addAlert('critical','Suspicious Port','Port '+p+' ('+(PORT_NAMES[p]||'?')+') on '+(customNames[d.mac]||d.hostname||d.ip));});
   });
 }
 function addAlert(level,title,msg){
-  const key=title+msg;
-  if(alerts.find(a=>a.key===key&&(Date.now()-a.time<120000)))return;
-  alerts.unshift({level,title,msg,time:Date.now(),key});
-  if(alerts.length>20)alerts.pop();
-  renderAlerts();
+  const key=title+msg;if(alerts.find(a=>a.key===key&&(Date.now()-a.time<120000)))return;
+  alerts.unshift({level,title,msg,time:Date.now(),key});if(alerts.length>20)alerts.pop();renderAlerts();
 }
 function renderAlerts(){
-  const el=document.getElementById('alertPanel');
-  el.innerHTML=alerts.slice(0,8).map(a=>{
+  document.getElementById('alertPanel').innerHTML=alerts.slice(0,8).map(a=>{
     const cls=a.level==='critical'?'alert-card critical':'alert-card';
-    const ago=Math.round((Date.now()-a.time)/1000);
-    return '<div class="'+cls+'"><div class="alert-title">'+(a.level==='critical'?'\u26A0 ':'')+a.title+'</div><div class="alert-msg">'+a.msg+'</div><div class="alert-time">'+ago+'s ago</div></div>';
+    return '<div class="'+cls+'"><div class="alert-title">'+(a.level==='critical'?'\u26A0 ':'')+a.title+'</div><div class="alert-msg">'+a.msg+'</div><div class="alert-time">'+Math.round((Date.now()-a.time)/1000)+'s ago</div></div>';
   }).join('');
 }
 function renderDevices(){
@@ -446,13 +427,10 @@ function renderDevices(){
   const search=(document.getElementById('searchBox').value||'').toLowerCase();
   let devs=[...devices];
   if(search)devs=devs.filter(d=>(d.hostname+d.ip+d.mac+(customNames[d.mac]||'')).toLowerCase().includes(search));
-  // Group by interface
   const groups={};
   devs.forEach(d=>{const g=d.iface||'Unknown';if(!groups[g])groups[g]=[];groups[g].push(d);});
-  // Sort interfaces: WiFi first, then Ethernet
   const ifNames=Object.keys(groups).sort((a,b)=>{
-    const aw=a.includes('GHz')||a.includes('WiFi')||a.includes('wifi');
-    const bw=b.includes('GHz')||b.includes('WiFi')||b.includes('wifi');
+    const aw=a.includes('GHz')||a.includes('WiFi');const bw=b.includes('GHz')||b.includes('WiFi');
     if(aw&&!bw)return-1;if(!aw&&bw)return 1;return a.localeCompare(b);
   });
   let html='';
@@ -477,48 +455,29 @@ function renderDevices(){
     });
   });
   grid.innerHTML=html;
-  // Draw sparklines
-  devs.forEach(d=>{
-    const cid='spark_'+d.ip.replace(/\./g,'_');
-    const cvs=document.getElementById(cid);
-    if(cvs)drawMiniSpark(cvs,sparkHistory[d.ip]||[]);
-  });
-                                                            }
+  devs.forEach(d=>{const cvs=document.getElementById('spark_'+d.ip.replace(/\./g,'_'));if(cvs)drawMiniSpark(cvs,sparkHistory[d.ip]||[]);});
+}
 function drawMiniSpark(canvas,data){
-  const dpr=window.devicePixelRatio||1;
-  const rect=canvas.getBoundingClientRect();
-  if(rect.width===0)return;
-  canvas.width=rect.width*dpr;
-  canvas.height=rect.height*dpr;
-  const ctx=canvas.getContext('2d');
-  ctx.setTransform(dpr,0,0,dpr,0,0);
-  const W=rect.width,H=rect.height;
-  ctx.clearRect(0,0,W,H);
+  const dpr=window.devicePixelRatio||1;const rect=canvas.getBoundingClientRect();if(rect.width===0)return;
+  canvas.width=rect.width*dpr;canvas.height=rect.height*dpr;
+  const ctx=canvas.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);
+  const W=rect.width,H=rect.height;ctx.clearRect(0,0,W,H);
   if(data.length<2)return;
   const maxVal=Math.max(1,...data.map(p=>Math.max(p.d,p.u)));
-  // Download line
   ctx.beginPath();ctx.strokeStyle=getColor('--accent1');ctx.lineWidth=1.5;
   data.forEach((p,i)=>{const x=i/(data.length-1)*W;const y=H-p.d/maxVal*(H-2)-1;i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);});
   ctx.stroke();
-  // Upload line
   ctx.beginPath();ctx.strokeStyle=getColor('--accent3');ctx.lineWidth=1;
   data.forEach((p,i)=>{const x=i/(data.length-1)*W;const y=H-p.u/maxVal*(H-2)-1;i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);});
   ctx.stroke();
 }
 function drawTopology(){
-  const canvas=document.getElementById('topoCanvas');
-  const wrap=document.getElementById('topoWrap');
-  const dpr=window.devicePixelRatio||1;
-  const W=wrap.clientWidth;const H=wrap.clientHeight;
-  canvas.width=W*dpr;canvas.height=H*dpr;
-  canvas.style.width=W+'px';canvas.style.height=H+'px';
-  const ctx=canvas.getContext('2d');
-  ctx.setTransform(dpr,0,0,dpr,0,0);
-  ctx.clearRect(0,0,W,H);
-  // Layout
-  const wanX=W*0.08,wanY=H*0.5;
-  const rtrX=W*0.25,rtrY=H*0.5;
-  // Draw WAN node
+  const canvas=document.getElementById('topoCanvas');const wrap=document.getElementById('topoWrap');
+  const dpr=window.devicePixelRatio||1;const W=wrap.clientWidth;const H=wrap.clientHeight;
+  canvas.width=W*dpr;canvas.height=H*dpr;canvas.style.width=W+'px';canvas.style.height=H+'px';
+  const ctx=canvas.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,W,H);
+  const wanX=W*0.08,wanY=H*0.5,rtrX=W*0.25,rtrY=H*0.5;
+  // WAN
   ctx.fillStyle=wanInfo.up?getColor('--success'):getColor('--danger');
   ctx.beginPath();ctx.arc(wanX,wanY,12,0,Math.PI*2);ctx.fill();
   ctx.fillStyle=getColor('--text-bright');ctx.font='bold 11px system-ui';ctx.textAlign='center';
@@ -527,12 +486,10 @@ function drawTopology(){
   ctx.fillText(wanInfo.ip||'--',wanX,wanY+40);
   ctx.fillText('\u2B07'+fmtSpeed(wanInfo.speed_down),wanX,wanY+52);
   ctx.fillText('\u2B06'+fmtSpeed(wanInfo.speed_up),wanX,wanY+62);
-  // Draw Router node
-  ctx.fillStyle=getColor('--accent2');
-  ctx.beginPath();ctx.arc(rtrX,rtrY,14,0,Math.PI*2);ctx.fill();
+  // Router
+  ctx.fillStyle=getColor('--accent2');ctx.beginPath();ctx.arc(rtrX,rtrY,14,0,Math.PI*2);ctx.fill();
   ctx.fillStyle=getColor('--text-bright');ctx.font='bold 11px system-ui';ctx.textAlign='center';
   ctx.fillText('\u{1F310} Router',rtrX,rtrY+32);
-  // WAN-Router link
   drawLink(wanX,wanY,rtrX,rtrY,getColor('--accent1'),wanInfo.up?2:0.5);
   // Interfaces
   const ifaceGroups={};
@@ -543,15 +500,12 @@ function drawTopology(){
   ifNames.forEach((ifName,i)=>{
     const y=ifNames.length===1?H/2:H*0.15+i*(H*0.7/(ifNames.length-1||1));
     const isWifi=ifName.includes('GHz')||ifName.includes('WiFi')||!ifName.includes('Ethernet');
-    // Interface node
     ctx.fillStyle=isWifi?getColor('--accent3'):getColor('--accent2');
     ctx.beginPath();ctx.arc(ifaceX,y,7,0,Math.PI*2);ctx.fill();
     ctx.fillStyle=getColor('--text-bright');ctx.font='10px system-ui';ctx.textAlign='center';
     ctx.fillText((isWifi?'\u{1F4F6} ':'\u{1F50C} ')+ifName.replace('Ethernet (br-lan)','Ethernet'),ifaceX,y-12);
     drawLink(rtrX,rtrY,ifaceX,y,isWifi?getColor('--accent3'):getColor('--accent2'),1.5);
-    // Devices for this interface
-    const devs=ifaceGroups[ifName];
-    const devX=W*0.75;
+    const devs=ifaceGroups[ifName];const devX=W*0.75;
     const spacing=Math.min(22,H*0.85/Math.max(devs.length,1));
     const startY=y-devs.length*spacing/2;
     devs.forEach((d,j)=>{
@@ -561,8 +515,7 @@ function drawTopology(){
       ctx.fillStyle=col;ctx.beginPath();ctx.arc(devX,dy,3,0,Math.PI*2);ctx.fill();
       ctx.fillStyle=isOn?getColor('--text-bright'):getColor('--text-muted');ctx.font='9px system-ui';ctx.textAlign='left';
       const dtype=guessDeviceType(d);const icon=DEV_ICONS[dtype]||DEV_ICONS.unknown;
-      const dname=icon+' '+(customNames[d.mac]||d.hostname||d.ip).substring(0,20);
-      ctx.fillText(dname,devX+8,dy+3);
+      ctx.fillText(icon+' '+(customNames[d.mac]||d.hostname||d.ip).substring(0,20),devX+8,dy+3);
       const bw=d.bw_down+d.bw_up;const lw=Math.max(0.5,Math.min(3,bw/50000));
       drawLink(ifaceX,y,devX,dy,col,lw);
       if(isOn&&Math.random()<0.08){
@@ -571,28 +524,22 @@ function drawTopology(){
       }
     });
   });
-  // WAN particles
   if(wanInfo.up&&Math.random()<0.12){
     particles.push({x1:wanX,y1:wanY,x2:rtrX,y2:rtrY,t:0,s:0.008+Math.random()*0.01,c:getColor('--accent1')});
     particles.push({x1:rtrX,y1:rtrY,x2:wanX,y2:wanY,t:0,s:0.006+Math.random()*0.008,c:getColor('--accent3')});
   }
-  // Animate particles
   particles.forEach(p=>{p.t+=p.s;const px=p.x1+(p.x2-p.x1)*p.t,py=p.y1+(p.y2-p.y1)*p.t;ctx.fillStyle=p.c;ctx.globalAlpha=Math.max(0,1-p.t);ctx.beginPath();ctx.arc(px,py,2.5,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;});
   particles=particles.filter(p=>p.t<1);if(particles.length>300)particles=particles.slice(-200);
 }
 function drawLink(x1,y1,x2,y2,color,w){const ctx=document.getElementById('topoCanvas').getContext('2d');ctx.strokeStyle=color;ctx.lineWidth=w;ctx.globalAlpha=0.25;ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();ctx.globalAlpha=1;}
 function showModal(ip){
-  const d=devices.find(x=>x.ip===ip);if(!d)return;
-  modalDev=d;
-  const name=customNames[d.mac]||d.hostname||d.ip;
-  const dtype=d.type||'unknown';
-  const icon=DEV_ICONS[dtype]||DEV_ICONS.unknown;
+  const d=devices.find(x=>x.ip===ip);if(!d)return;modalDev=d;
+  const name=customNames[d.mac]||d.hostname||d.ip;const dtype=d.type||'unknown';const icon=DEV_ICONS[dtype]||DEV_ICONS.unknown;
   document.getElementById('mIcon').textContent=icon;
   document.getElementById('mTitle').textContent=name;
-  // Info tab
   let info='<h3>Device Information</h3>';
-  info+='<div class="m-row"><span class="m-label">IP Address</span><span class="m-val">'+d.ip+'</span></div>';
-  info+='<div class="m-row"><span class="m-label">MAC Address</span><span class="m-val">'+d.mac+'</span></div>';
+  info+='<div class="m-row"><span class="m-label">IP</span><span class="m-val">'+d.ip+'</span></div>';
+  info+='<div class="m-row"><span class="m-label">MAC</span><span class="m-val">'+d.mac+'</span></div>';
   info+='<div class="m-row"><span class="m-label">Hostname</span><span class="m-val">'+(d.hostname||'--')+'</span></div>';
   info+='<div class="m-row"><span class="m-label">Interface</span><span class="m-val">'+d.iface+'</span></div>';
   info+='<div class="m-row"><span class="m-label">Type</span><span class="m-val">'+dtype+'</span></div>';
@@ -603,7 +550,7 @@ function showModal(ip){
   info+='<div class="m-row"><span class="m-label">Total RX</span><span class="m-val">'+fmtB(d.rx)+'</span></div>';
   info+='<div class="m-row"><span class="m-label">Total TX</span><span class="m-val">'+fmtB(d.tx)+'</span></div>';
   if(d.signal)info+='<div class="m-row"><span class="m-label">WiFi Signal</span><span class="m-val">'+d.signal+' dBm</span></div>';
-  if(d.ports.length)info+='<div class="m-row"><span class="m-label">Active Ports</span><span class="m-val">'+d.ports.slice(0,15).map(p=>(PORT_NAMES[p]||p)).join(', ')+'</span></div>';
+  if(d.ports.length)info+='<div class="m-row"><span class="m-label">Ports</span><span class="m-val">'+d.ports.slice(0,15).map(p=>(PORT_NAMES[p]||p)).join(', ')+'</span></div>';
   document.getElementById('mInfo').innerHTML=info;
   showModalTab('info');
   document.getElementById('modalOverlay').classList.add('active');
@@ -611,96 +558,64 @@ function showModal(ip){
 function showModalTab(tab){
   document.querySelectorAll('.modal-tab').forEach(t=>t.classList.remove('active'));
   document.querySelectorAll('.modal-section').forEach(s=>s.style.display='none');
-  event&&event.target&&event.target.classList.add('active');
+  if(event&&event.target)event.target.classList.add('active');
   const d=modalDev;if(!d)return;
-  if(tab==='info'){
-    document.getElementById('mInfo').style.display='';
-    document.querySelector('.modal-tab:nth-child(1)').classList.add('active');
-  }else if(tab==='traffic'){
-    document.getElementById('mTraffic').style.display='';
-    document.querySelector('.modal-tab:nth-child(2)').classList.add('active');
-    let html='<h3>Active Connections</h3>';
-    const conns=d.conns.slice(0,30);
-    if(conns.length===0)html+='<p style="color:var(--text-muted);font-size:12px;">No active connections</p>';
-    else{
-      html+='<div style="max-height:250px;overflow-y:auto;">';
-      conns.forEach(c=>{
-        const port=c.dport?(PORT_NAMES[parseInt(c.dport)]||c.dport):'--';
-        html+='<div class="m-row"><span class="m-label">'+c.dst+':'+c.dport+' ('+port+')</span><span class="m-val">'+(c.proto||'')+'</span></div>';
-      });
-      html+='</div>';
-    }
-    document.getElementById('mTraffic').innerHTML=html;
+  if(tab==='info'){document.getElementById('mInfo').style.display='';document.querySelector('.modal-tab:nth-child(1)').classList.add('active');}
+  else if(tab==='traffic'){
+    document.getElementById('mTraffic').style.display='';document.querySelector('.modal-tab:nth-child(2)').classList.add('active');
+    let h='<h3>Active Connections</h3>';const conns=d.conns.slice(0,30);
+    if(!conns.length)h+='<p style="color:var(--text-muted);font-size:12px">No active connections</p>';
+    else{h+='<div style="max-height:250px;overflow-y:auto">';conns.forEach(c=>{h+='<div class="m-row"><span class="m-label">'+c.dst+':'+c.dport+' ('+(PORT_NAMES[parseInt(c.dport)]||'?')+')</span><span class="m-val">'+(c.layer4||c.proto||'')+'</span></div>';});h+='</div>';}
+    document.getElementById('mTraffic').innerHTML=h;
   }else if(tab==='dns'){
-    document.getElementById('mDns').style.display='';
-    document.querySelector('.modal-tab:nth-child(3)').classList.add('active');
+    document.getElementById('mDns').style.display='';document.querySelector('.modal-tab:nth-child(3)').classList.add('active');
     const devDns=dnsLog.filter(e=>e.ip===d.ip).slice(0,50);
-    let html='<h3>DNS Queries</h3>';
-    if(devDns.length===0)html+='<p style="color:var(--text-muted);font-size:12px;">No DNS queries recorded</p>';
-    else{
-      html+='<div class="m-dns-list">';
-      devDns.forEach(e=>{html+='<div class="m-row"><span class="m-label">'+e.domain+'</span><span class="m-val" style="font-size:10px;color:var(--text-muted)">'+e.time+'</span></div>';});
-      html+='</div>';
-    }
-    document.getElementById('mDns').innerHTML=html;
+    let h='<h3>DNS Queries</h3>';
+    if(!devDns.length)h+='<p style="color:var(--text-muted);font-size:12px">No DNS queries</p>';
+    else{h+='<div class="m-dns-list">';devDns.forEach(e=>{h+='<div class="m-row"><span class="m-label">'+e.domain+'</span><span class="m-val" style="font-size:10px;color:var(--text-muted)">'+e.time+'</span></div>';});h+='</div>';}
+    document.getElementById('mDns').innerHTML=h;
   }else if(tab==='actions'){
-    document.getElementById('mActions').style.display='';
-    document.querySelector('.modal-tab:nth-child(4)').classList.add('active');
-    let html='<h3>Customize</h3>';
-    html+='<div style="margin-bottom:12px;"><label style="font-size:11px;color:var(--text-muted);">Display Name</label>';
-    html+='<input class="m-input" id="mNameInput" value="'+(customNames[d.mac]||d.hostname||'')+'" placeholder="Custom name"></div>';
-    html+='<div style="margin-bottom:12px;"><label style="font-size:11px;color:var(--text-muted);">Device Type</label>';
-    html+='<select class="m-select" id="mTypeSelect">';
-    Object.keys(DEV_ICONS).forEach(t=>{html+='<option value="'+t+'"'+(t===(customTypes[d.mac]||d.type)?' selected':'')+'>'+DEV_ICONS[t]+' '+t+'</option>';});
-    html+='</select></div>';
-    html+='<button class="m-btn primary" onclick="saveCustom()">Save</button>';
-    html+='<h3 style="margin-top:16px;">Actions</h3>';
-    html+='<button class="m-btn danger" onclick="toggleBlock(\''+d.mac+'\',\''+d.ip+'\')">\u{1F6AB} Block Device</button>';
-    document.getElementById('mActions').innerHTML=html;
+    document.getElementById('mActions').style.display='';document.querySelector('.modal-tab:nth-child(4)').classList.add('active');
+    let h='<h3>Customize</h3>';
+    h+='<div style="margin-bottom:12px"><label style="font-size:11px;color:var(--text-muted)">Display Name</label>';
+    h+='<input class="m-input" id="mNameInput" value="'+(customNames[d.mac]||d.hostname||'')+'" placeholder="Custom name"></div>';
+    h+='<div style="margin-bottom:12px"><label style="font-size:11px;color:var(--text-muted)">Device Type</label>';
+    h+='<select class="m-select" id="mTypeSelect">';
+    Object.keys(DEV_ICONS).forEach(t=>{h+='<option value="'+t+'"'+(t===(customTypes[d.mac]||d.type)?' selected':'')+'>'+DEV_ICONS[t]+' '+t+'</option>';});
+    h+='</select></div>';
+    h+='<button class="m-btn primary" onclick="saveCustom()">Save</button>';
+    h+='<h3 style="margin-top:16px">Actions</h3>';
+    h+='<button class="m-btn danger" onclick="toggleBlock(\''+d.mac+'\',\''+d.ip+'\')">\u{1F6AB} Block</button>';
+    document.getElementById('mActions').innerHTML=h;
   }
 }
 function saveCustom(){
   if(!modalDev)return;
-  const nameVal=document.getElementById('mNameInput').value.trim();
-  const typeVal=document.getElementById('mTypeSelect').value;
-  if(nameVal)customNames[modalDev.mac]=nameVal;
-  else delete customNames[modalDev.mac];
-  if(typeVal&&typeVal!=='unknown')customTypes[modalDev.mac]=typeVal;
-  else delete customTypes[modalDev.mac];
+  const n=document.getElementById('mNameInput').value.trim();const t=document.getElementById('mTypeSelect').value;
+  if(n)customNames[modalDev.mac]=n;else delete customNames[modalDev.mac];
+  if(t&&t!=='unknown')customTypes[modalDev.mac]=t;else delete customTypes[modalDev.mac];
   try{localStorage.setItem('nf_names',JSON.stringify(customNames));localStorage.setItem('nf_types',JSON.stringify(customTypes));}catch(e){}
-  renderDevices();
-  document.getElementById('modalOverlay').classList.remove('active');
+  renderDevices();document.getElementById('modalOverlay').classList.remove('active');
 }
 async function toggleBlock(mac,ip){
-  if(!confirm('Block device '+ip+' ('+mac+')? This will add a firewall rule.'))return;
+  if(!confirm('Block '+ip+'?'))return;
   await ubus('uci','add',{config:'firewall',type:'rule',values:{name:'Block_'+mac.replace(/:/g,''),src:'lan',src_mac:mac,dest:'wan',target:'REJECT'}});
   await ubus('uci','commit',{config:'firewall'});
   await ubus('luci','setInitAction',{name:'firewall',action:'restart'});
-  addAlert('warn','Device Blocked','Blocked device '+ip+' ('+mac+')');
+  addAlert('warn','Blocked',ip+' ('+mac+')');
 }
 async function fetchDnsLog(){
-  try{
-    const r=await fetch('/cgi-bin/dnslog');
-    if(!r.ok)return;
-    const text=await r.text();
+  try{const r=await fetch('/cgi-bin/dnslog');if(!r.ok)return;const text=await r.text();
     const lines=text.trim().split('\n').filter(l=>l.includes('query['));
-    dnsLog=lines.map(line=>{
-      const m=line.match(/(\S+\s+\S+\s+\S+).*?query\[(\w+)\]\s+(\S+)\s+from\s+(\S+)/);
-      if(!m)return null;
-      return{time:m[1],type:m[2],domain:m[3],ip:m[4]};
-    }).filter(Boolean).reverse();
+    dnsLog=lines.map(line=>{const m=line.match(/(\S+\s+\S+\s+\S+).*?query\[(\w+)\]\s+(\S+)\s+from\s+(\S+)/);return m?{time:m[1],type:m[2],domain:m[3],ip:m[4]}:null;}).filter(Boolean).reverse();
     renderDnsPanel();
-  }catch(e){console.error('DNS fetch error:',e);}
+  }catch(e){}
 }
 function renderDnsPanel(){
-  const panel=document.getElementById('dnsPanel');
-  if(dnsLog.length===0){panel.innerHTML='<p style="padding:20px;color:var(--text-muted);text-align:center;">No DNS queries found. Make sure dnsmasq log queries is enabled.</p>';return;}
-  let html='';
-  dnsLog.slice(0,200).forEach(e=>{
-    html+='<div class="dns-entry"><span class="dns-time">'+e.time.split(' ').pop()+'</span><span class="dns-type">'+e.type+'</span><span class="dns-ip">'+e.ip+'</span><span class="dns-domain">'+e.domain+'</span></div>';
-  });
-  panel.innerHTML=html;
-}
+  const p=document.getElementById('dnsPanel');
+  if(!dnsLog.length){p.innerHTML='<p style="padding:20px;color:var(--text-muted);text-align:center">No DNS queries found.</p>';return;}
+  p.innerHTML=dnsLog.slice(0,200).map(e=>'<div class="dns-entry"><span class="dns-time">'+e.time.split(' ').pop()+'</span><span class="dns-type">'+e.type+'</span><span class="dns-ip">'+e.ip+'</span><span class="dns-domain">'+e.domain+'</span></div>').join('');
+                                                                }
 const THEMES=[
   {name:'Cyber Dark',bg:'#0a0e17',surface:'#111827',surface2:'#1a2236',border:'#1e293b',textBright:'#e2e8f0',textMuted:'#64748b',accent1:'#06b6d4',accent2:'#8b5cf6',accent3:'#f59e0b',dot:'#06b6d4'},
   {name:'Ocean',bg:'#0b1120',surface:'#0f1729',surface2:'#162033',border:'#1e3048',textBright:'#c8e0f4',textMuted:'#5b7ea1',accent1:'#38bdf8',accent2:'#818cf8',accent3:'#fb923c',dot:'#38bdf8'},
@@ -710,14 +625,12 @@ const THEMES=[
   {name:'Light',bg:'#f0f4f8',surface:'#ffffff',surface2:'#e8edf2',border:'#cbd5e1',textBright:'#1e293b',textMuted:'#64748b',accent1:'#0891b2',accent2:'#7c3aed',accent3:'#d97706',dot:'#0891b2',light:true}
 ];
 function initThemes(){
-  const bar=document.getElementById('themeBar');
-  let saved=0;try{saved=parseInt(localStorage.getItem('nf_theme'))||0;}catch(e){}
+  const bar=document.getElementById('themeBar');let saved=0;try{saved=parseInt(localStorage.getItem('nf_theme'))||0;}catch(e){}
   bar.innerHTML=THEMES.map((t,i)=>'<div class="theme-dot'+(i===saved?' active':'')+'" style="background:'+t.dot+'" onclick="applyTheme('+i+')" title="'+t.name+'"></div>').join('');
   applyTheme(saved);
 }
 function applyTheme(idx){
-  const t=THEMES[idx]||THEMES[0];
-  const r=document.documentElement;
+  const t=THEMES[idx]||THEMES[0];const r=document.documentElement;
   if(t.light)r.setAttribute('data-theme','light');else r.removeAttribute('data-theme');
   r.style.setProperty('--bg',t.bg);r.style.setProperty('--surface',t.surface);r.style.setProperty('--surface2',t.surface2);
   r.style.setProperty('--border',t.border);r.style.setProperty('--text-bright',t.textBright);r.style.setProperty('--text-muted',t.textMuted);
@@ -725,37 +638,17 @@ function applyTheme(idx){
   document.querySelectorAll('.theme-dot').forEach((d,i)=>d.classList.toggle('active',i===idx));
   try{localStorage.setItem('nf_theme',idx);}catch(e){}
 }
-// Drag handle for bottom panel resize
-(function(){
-  const handle=document.getElementById('dragHandle');
-  const panel=document.getElementById('bottomPanel');
-  let dragging=false,startY=0,startH=0;
-  handle.addEventListener('mousedown',e=>{dragging=true;startY=e.clientY;startH=panel.offsetHeight;document.body.style.cursor='ns-resize';e.preventDefault();});
-  document.addEventListener('mousemove',e=>{if(!dragging)return;const dy=startY-e.clientY;panel.style.height=Math.max(100,Math.min(window.innerHeight-100,startH+dy))+'px';});
-  document.addEventListener('mouseup',()=>{if(dragging){dragging=false;document.body.style.cursor='';}});
+(function(){const h=document.getElementById('dragHandle');const p=document.getElementById('bottomPanel');let dr=false,sy=0,sh=0;
+  h.addEventListener('mousedown',e=>{dr=true;sy=e.clientY;sh=p.offsetHeight;document.body.style.cursor='ns-resize';e.preventDefault();});
+  document.addEventListener('mousemove',e=>{if(!dr)return;p.style.height=Math.max(100,Math.min(window.innerHeight-100,sh+(sy-e.clientY)))+'px';});
+  document.addEventListener('mouseup',()=>{if(dr){dr=false;document.body.style.cursor='';}});
 })();
-// Clock
-function updateClock(){
-  const d=new Date();
-  document.getElementById('clock').textContent=d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
-}
-// Load saved customizations
+function updateClock(){document.getElementById('clock').textContent=new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',second:'2-digit'});}
 try{customNames=JSON.parse(localStorage.getItem('nf_names'))||{};}catch(e){customNames={};}
 try{customTypes=JSON.parse(localStorage.getItem('nf_types'))||{};}catch(e){customTypes={};}
 let animFrame=0;
-function animate(){
-  animFrame++;
-  if(animFrame%2===0)drawTopology();
-  requestAnimationFrame(animate);
-}
-function startDashboard(){
-  initThemes();
-  updateClock();setInterval(updateClock,1000);
-  fetchData();
-  setInterval(fetchData,4000);
-  animate();
-  fetchDnsLog();setInterval(fetchDnsLog,30000);
-}
+function animate(){animFrame++;if(animFrame%2===0)drawTopology();requestAnimationFrame(animate);}
+function startDashboard(){initThemes();updateClock();setInterval(updateClock,1000);fetchData();setInterval(fetchData,4000);animate();fetchDnsLog();setInterval(fetchDnsLog,30000);}
 </script>
 </body>
 </html>
